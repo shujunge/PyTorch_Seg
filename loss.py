@@ -22,7 +22,6 @@ def bce_loss(true, logits, pos_weight=None):
     )
     return bce_loss
 
-
 def ce_loss( logits,true, weights, ignore=255):
     """Computes the weighted multi-class cross-entropy loss.
     Args:
@@ -42,7 +41,6 @@ def ce_loss( logits,true, weights, ignore=255):
         weight=weights,
     )
     return ce_loss
-
 
 def dice_loss(logits,true, eps=1e-7):
     """Computes the Sørensen–Dice loss.

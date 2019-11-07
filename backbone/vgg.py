@@ -103,13 +103,13 @@ def print_weight(model):
         print(v[0,0,:3,:3])
         exit()
 
+if __name__ == '__main__':
 
-# x = torch.randn(1,3,512,512)
-# model = vgg16(pretrained_model = "/home/zf/.torch/models/vgg16-397923af.pth")
-# # model = vgg19(pretrained_model = "/home/zf/.torch/models/vgg19-dcbb9e9d.pth")
-#
-# outputs = model(x)
-# for output in outputs:
-#     print(output.size())
-# print_weight(model)
+    x = torch.randn(1,3,512,512)
+    model = vgg16(pretrained_model = "/home/zf/.torch/models/vgg16-397923af.pth")
+    # model = vgg19(pretrained_model = "/home/zf/.torch/models/vgg19-dcbb9e9d.pth")
+    outputs = model(x)
+    for output in outputs:
+        print(output.size())
+    print_weight(model)
 

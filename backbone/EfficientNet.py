@@ -534,9 +534,11 @@ def EfficientNet_B4(pretrained_model=False):
     model = EfficientNet.from_pretrained('efficientnet-b4',pretrained_model)
     return model
 
-# x = torch.randn(2,3,512,512)
-# model =  EfficientNet_B4()
-# out = model(x)
-# for index in out:
-#     print(index.size())
+
+if __name__ == '__main__':
+    x = torch.randn(2,3,512,512)
+    model =  EfficientNet_B4()
+    out = model(x)
+    for index in out:
+        print(index.size())
 

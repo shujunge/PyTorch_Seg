@@ -273,14 +273,14 @@ def print_weight(model):
         print("layer name:",k,v.size())
         print(v[0,0,:3,:3])
         exit()
-              
 
-# x = torch.randn(1,3,512,512)
-#
-# net = resnet34(pretrained_model="/home/zf/.torch/models/resnet34-333f7ec4.pth")
-#
-# outputs = net(x)
-# for layers in outputs:
-#     print(layers.size())
-#
-# print_weight(net)
+
+if __name__ == '__main__':
+
+    x = torch.randn(1,3,512,512)
+    net = resnet34(pretrained_model="/home/zf/.torch/models/resnet34-333f7ec4.pth")
+    outputs = net(x)
+    for layers in outputs:
+        print(layers.size())
+
+    print_weight(net)

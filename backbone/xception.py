@@ -154,11 +154,11 @@ def xception39(pretrained_model=None, **kwargs):
         model = load_pretrainedweights(model, pretrained_model)
     return model
 
+if __name__ == '__main__':
 
-# x = torch.randn(1,3,224,224)
-# model = xception39()
-#
-# outputs = model(x)
-# for output in outputs:
-#     print(output.size())
-# # print_weight(model)
+    x = torch.randn(1,3,224,224)
+    model = xception39()
+    outputs = model(x)
+    for output in outputs:
+        print(output.size())
+    # print_weight(model)

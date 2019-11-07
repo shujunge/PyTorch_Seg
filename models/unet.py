@@ -110,10 +110,11 @@ class UNet(nn.Module):
         logits = self.outc(x)
         return logits
 
+if __name__ == '__main__':
 
-x = torch.randn(2,3,512,512)
-model = UNet(n_channels=3,n_classes=5)
-out = model(x)
-print(out.size())
-# from torchsummary import summary
-# summary(model,(3,512,512))
+    x = torch.randn(2,3,512,512)
+    model = UNet(n_channels=3,n_classes=5)
+    out = model(x)
+    print(out.size())
+    # from torchsummary import summary
+    # summary(model,(3,512,512))
