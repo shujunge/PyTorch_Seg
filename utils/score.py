@@ -20,7 +20,7 @@ class SegmentationMetric(object):
 
         Parameters
         ----------
-        labels : 'NumpyArray' or list of `NumpyArray`
+        labels : 'NumpyArray' or list of torch tensor
             The labels of the data.
         preds : 'NumpyArray' or list of `NumpyArray`
             Predicted values.
@@ -159,3 +159,12 @@ def compute_score(hist, correct, labeled):
     mean_pixel_acc = correct / labeled
 
     return iu, mean_IU, mean_IU_no_back, mean_pixel_acc
+
+
+if __name__=="__main__":
+    x = torch.ones((1, 1, 4, 4))
+    y = torch.ones((1, 4, 4))
+    metric = SegmentationMetric(1)
+    metric.update(x, y)
+    pixAcc, mIoU = metric.get()
+    print(pixAcc, mIoU )

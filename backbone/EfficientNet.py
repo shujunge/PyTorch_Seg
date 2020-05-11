@@ -498,22 +498,16 @@ class EfficientNet(nn.Module):
         return cls(blocks_args, global_params)
 
     @classmethod
-    def from_pretrained(cls, model_name, num_classes=1000, in_channels = 3):
+    def from_pretrained(cls, model_name, num_classes=1000, in_channels = 3, pretrained_model= False):
         model = cls.from_name(model_name, override_params={'num_classes': num_classes})
-        load_pretrained_weights(model, model_name, load_fc=(num_classes == 1000))
+        if pretrained_model:
+            load_pretrained_weights(model, model_name, load_fc=(num_classes == 1000))
         if in_channels != 3:
             Conv2d = get_same_padding_conv2d(image_size = model._global_params.image_size)
             out_channels = round_filters(32, model._global_params)
             model._conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=2, bias=False)
         return model
-    
-    @classmethod
-    def from_pretrained(cls, model_name, pretrained_model=False, num_classes=1000):
-        model = cls.from_name(model_name, override_params={'num_classes': num_classes})
-        if pretrained_model:
-            load_pretrained_weights(model, model_name, load_fc=(num_classes == 1000))
 
-        return model
 
     @classmethod
     def get_image_size(cls, model_name):
@@ -530,15 +524,47 @@ class EfficientNet(nn.Module):
         if model_name not in valid_models:
             raise ValueError('model_name should be one of: ' + ', '.join(valid_models))
 
-def EfficientNet_B4(pretrained_model=False):
-    model = EfficientNet.from_pretrained('efficientnet-b4',pretrained_model)
+def load_pretrainedweights(model, pretrained_model):
+    model_dict = model.state_dict()
+    pretrained_dict = torch.load(pretrained_model)
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
     return model
+
+def EfficientNet_B4(in_channels, pretrained_model=None):
+
+    model = EfficientNet.from_pretrained('efficientnet-b4', in_channels=in_channels)
+    if pretrained_model:
+        load_pretrainedweights(model, pretrained_model)
+
+    return model
+
+
+def print_weight():
+    model = EfficientNet_B4(pretrained_model="/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth")
+    model_dict_v1 = model.state_dict()
+    model = EfficientNet_B4(pretrained_model="/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth")
+    model_dict_v2 = model.state_dict()
+    for k in model_dict_v1.keys():
+        try:
+            assert model_dict_v1[k].data.numpy().all() == model_dict_v2[k].data.numpy().all()
+        except AssertionError as e:
+            print("failed to load weights!")
+            break
+    else:
+        print("--> model weight loading is  successful!")
+
+
+
+
 
 
 if __name__ == '__main__':
     x = torch.randn(2,3,512,512)
-    model =  EfficientNet_B4()
+    model =  EfficientNet_B4(pretrained_model="/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth")
     out = model(x)
     for index in out:
         print(index.size())
+    print_weight()
 

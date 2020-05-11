@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 """Base Model for Semantic Segmentation"""
 
-from backbone.resnet import resnet50, resnet101
+from backbone.resnet import resnet34, resnet50, resnet101
 from backbone.vgg import vgg16
 from backbone.EfficientNet import EfficientNet_B4
 
@@ -19,12 +19,13 @@ class SegBaseModel(nn.Module):
         'resnet101' or 'resnet152').
     """
 
-    def __init__(self, nclass, aux, backbone='resnet50', pretrained_base = True, **kwargs):
+    def __init__(self, nclass, in_channels, aux, backbone='resnet50', pretrained_base = True, **kwargs):
         super(SegBaseModel, self).__init__()
 
         self.aux = aux
         self.nclass = nclass
         self.backbone = backbone
+        self.in_channels  = in_channels
         models={}
         models['resnet18'] = "/home/zfw/.torch/models/resnet18-5c106cde.pth"
         models['resnet34'] = "/home/zfw/.torch/models/resnet34-333f7ec4.pth"
@@ -32,11 +33,11 @@ class SegBaseModel(nn.Module):
         models['resnet101'] = "/home/zfw/.torch/models/resnet101-5d3b4d8f.pth"
         models['vgg16'] = "/home/zfw/.torch/models/vgg16-00b39a1b.pth"
         models['xception39'] = "/home/zfw/.torch/models/xception-43020ad28.pth"
-        models['EfficientNet_B4']=None
+        models['EfficientNet_B4']="/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth"
         if pretrained_base:
-            self.pretrained = eval(backbone)(pretrained_model=models[backbone] , **kwargs)
+            self.pretrained = eval(backbone)(in_channels=self.in_channels, pretrained_model=models[backbone], **kwargs)
         else:
-            self.pretrained = eval(backbone)(pretrained_model=None, **kwargs)
+            self.pretrained = eval(backbone)(in_channels=self.in_channels, pretrained_model=None, **kwargs)
 
 
     def base_forward(self, x):
@@ -68,7 +69,6 @@ class SegBaseModel(nn.Module):
             pred = pred[0]
         return pred
 
-
 class _FCNHead(nn.Module):
     def __init__(self, in_channels, channels, norm_layer=nn.BatchNorm2d, **kwargs):
         super(_FCNHead, self).__init__()
@@ -83,8 +83,6 @@ class _FCNHead(nn.Module):
 
     def forward(self, x):
         return self.block(x)
-
-
 
 def _PSP1x1Conv(in_channels, out_channels, norm_layer, norm_kwargs):
     return nn.Sequential(
@@ -117,36 +115,17 @@ class _PyramidPooling(nn.Module):
 
 
 class _PSPHead(nn.Module):
-    def __init__(self, nclass,backbone, norm_layer=nn.BatchNorm2d, norm_kwargs=None, **kwargs):
+    def __init__(self, nclass, backbone, norm_layer=nn.BatchNorm2d, norm_kwargs=None, **kwargs):
         super(_PSPHead, self).__init__()
         self.backbone = backbone
-        if  self.backbone in ['resnet50','resnet101']:
-            self.psp = _PyramidPooling(2048, norm_layer=norm_layer, norm_kwargs=norm_kwargs)
-            self.block = nn.Sequential(
-                nn.Conv2d(4096, 512, 3, padding=1, bias=False),
-                norm_layer(512, **({} if norm_kwargs is None else norm_kwargs)),
-                nn.ReLU(True),
-                nn.Dropout(0.1),
-                nn.Conv2d(512, nclass, 1)
-            )
-        elif self.backbone =='vgg16':
-            self.psp = _PyramidPooling(512, norm_layer=norm_layer, norm_kwargs=norm_kwargs)
-            self.block = nn.Sequential(
-                nn.Conv2d(1024, 512, 3, padding=1, bias=False),
-                norm_layer(512, **({} if norm_kwargs is None else norm_kwargs)),
-                nn.ReLU(True),
-                nn.Dropout(0.1),
-                nn.Conv2d(512, nclass, 1)
-            )
-        elif self.backbone =='EfficientNet_B4':
-            self.psp = _PyramidPooling(1792, norm_layer=norm_layer, norm_kwargs=norm_kwargs)
-            self.block = nn.Sequential(
-                nn.Conv2d(1792*2, 512, 3, padding=1, bias=False),
-                norm_layer(512, **({} if norm_kwargs is None else norm_kwargs)),
-                nn.ReLU(True),
-                nn.Dropout(0.1),
-                nn.Conv2d(512, nclass, 1)
-            )
+        self.param = {'resnet34':512, 'resnet50':2018, 'resnet101':2048, 'vgg16':512,'EfficientNet_B4': 1792}
+        self.psp = _PyramidPooling(self.param[ self.backbone], norm_layer=norm_layer, norm_kwargs=norm_kwargs)
+        self.block = nn.Sequential(
+            nn.Conv2d(self.param[ self.backbone]*2, 512, 3, padding=1, bias=False),
+            norm_layer(512, **({} if norm_kwargs is None else norm_kwargs)),
+            nn.ReLU(True),
+            nn.Dropout(0.1),
+            nn.Conv2d(512, nclass, 1))
 
     def forward(self, x):
         x = self.psp(x)
@@ -174,9 +153,10 @@ class PSPNet(SegBaseModel):
         "Pyramid scene parsing network." *CVPR*, 2017
     """
 
-    def __init__(self, nclass, aux=False, backbone='resnet50',  pretrained_base=True, **kwargs):
-        super(PSPNet, self).__init__(nclass, aux,backbone,  pretrained_base=pretrained_base, **kwargs)
-        self.head = _PSPHead(nclass,backbone, **kwargs)
+    def __init__(self, nclass, in_channels, aux=False, backbone='resnet50',  pretrained_base=True, **kwargs):
+        super(PSPNet, self).__init__(nclass,in_channels, aux, backbone,  pretrained_base=pretrained_base, **kwargs)
+
+        self.head = _PSPHead(nclass, backbone, **kwargs)
         if self.aux:
             self.auxlayer = _FCNHead(1024, nclass, **kwargs)
 
@@ -200,11 +180,32 @@ def print_weight(model):
 
 if __name__ == '__main__':
 
-    model = PSPNet(150, backbone='vgg16', pretrained_base=False)
+    model = PSPNet(150, in_channels= 3,backbone='EfficientNet_B4', pretrained_base=True)
     img = torch.randn(2, 3, 480, 480)
     output = model(img)
-    print("output size:",output.size())
+    print("output size:", output.size())
     # print_weight(model)
     from torchsummary import summary
     summary(model,(3,512,512))
 
+"""
+'VGG16'
+================================================================
+Total params: 33,353,046
+Trainable params: 33,353,046
+Non-trainable params: 0
+----------------------------------------------------------------
+'resnet50'
+================================================================
+Total params: 46,658,774
+Trainable params: 46,658,774
+Non-trainable params: 0
+----------------------------------------------------------------
+'EfficientNet_B4'
+================================================================
+Total params: 37,356,510
+Trainable params: 37,356,510
+Non-trainable params: 0
+----------------------------------------------------------------
+
+"""

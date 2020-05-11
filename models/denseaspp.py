@@ -24,7 +24,7 @@ class DenseASPP(nn.Module):
     """
     * output_scale can only set as 8 or 16
     """
-    def __init__(self, model_cfg, n_class=19, output_stride=8):
+    def __init__(self, model_cfg,in_channels, n_class=19, output_stride=8):
         super(DenseASPP, self).__init__()
         bn_size = model_cfg['bn_size']
         drop_rate = model_cfg['drop_rate']
@@ -41,7 +41,7 @@ class DenseASPP(nn.Module):
 
         # First convolution
         self.features = nn.Sequential(OrderedDict([
-            ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
+            ('conv0', nn.Conv2d(in_channels, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
             ('norm0', bn(num_init_features)),
             ('relu0', nn.ReLU(inplace=True)),
             ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
@@ -226,10 +226,25 @@ def print_weight(model):
         print(v[0,0,:3,:3])
         exit()
 
+def Dense121ASPP(model_cfg,in_channels= 3, n_class =5,pretrained=True):
+    model = DenseASPP(model_cfg, in_channels=in_channels, n_class=n_class)
+    if pretrained:
+        load_pretrainedweights(model, model_cfg['pretrained_path'])
+    return model
+
 if __name__ == "__main__":
-    model = DenseASPP(model_cfg,n_class=5)
-    load_pretrainedweights(model,model_cfg['pretrained_path'])
-    x = torch.randn(1,3,512,512)
+
+    model = Dense121ASPP(model_cfg,in_channels =3, n_class=5)
+    x = torch.randn(2,3,512,512)
     print(model(x).size())
-    from torchsummary import summary
-    summary(model,(3,512,512))
+    print_weight(model)
+
+
+"""
+'DenseASPP'
+================================================================
+Total params: 9,128,837
+Trainable params: 9,128,837
+Non-trainable params: 0
+----------------------------------------------------------------
+"""
