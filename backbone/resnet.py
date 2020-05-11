@@ -127,13 +127,13 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, norm_layer=nn.BatchNorm2d, bn_eps=1e-5,
+    def __init__(self,in_channels, block, layers, norm_layer=nn.BatchNorm2d, bn_eps=1e-5,
                  bn_momentum=0.1, deep_stem=False, stem_width=32, inplace=True):
         self.inplanes = stem_width * 2 if deep_stem else 64
         super(ResNet, self).__init__()
         if deep_stem:
             self.conv1 = nn.Sequential(
-                nn.Conv2d(3, stem_width, kernel_size=3, stride=2, padding=1,
+                nn.Conv2d(in_channels, stem_width, kernel_size=3, stride=2, padding=1,
                           bias=False),
                 norm_layer(stem_width, eps=bn_eps, momentum=bn_momentum),
                 nn.ReLU(inplace=inplace),
@@ -147,7 +147,7 @@ class ResNet(nn.Module):
                           bias=False),
             )
         else:
-            self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
+            self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3,
                                    bias=False)
 
         self.bn1 = norm_layer(stem_width * 2 if deep_stem else 64, eps=bn_eps,
@@ -208,8 +208,8 @@ class ResNet(nn.Module):
         return blocks
 
 
-def resnet18(pretrained_model=None, **kwargs):
-    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+def resnet18(in_channels=3, pretrained_model=None, **kwargs):
+    model = ResNet(in_channels, BasicBlock, [2, 2, 2, 2], **kwargs)
 
     if pretrained_model == 'download':
         state_dict = load_state_dict_from_url(model_urls['resnet18'],progress=True)
@@ -219,8 +219,9 @@ def resnet18(pretrained_model=None, **kwargs):
     return model
 
 
-def resnet34(pretrained_model=None, **kwargs):
-    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+def resnet34(in_channels=3, pretrained_model=None, **kwargs):
+
+    model = ResNet(in_channels, BasicBlock, [3, 4, 6, 3], **kwargs)
     
     if pretrained_model == 'download':
         state_dict = load_state_dict_from_url(model_urls['resnet34'],progress=True)
@@ -231,8 +232,8 @@ def resnet34(pretrained_model=None, **kwargs):
     return model
 
 
-def resnet50(pretrained_model=None, **kwargs):
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+def resnet50(in_channels=3, pretrained_model=None, **kwargs):
+    model = ResNet(in_channels, Bottleneck, [3, 4, 6, 3], **kwargs)
     
     if pretrained_model == 'download':
         state_dict = load_state_dict_from_url(model_urls['resnet50'],progress=True)
@@ -243,8 +244,8 @@ def resnet50(pretrained_model=None, **kwargs):
     return model
 
 
-def resnet101(pretrained_model=None, **kwargs):
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+def resnet101(in_channels=3, pretrained_model=None, **kwargs):
+    model = ResNet(in_channels, Bottleneck, [3, 4, 23, 3], **kwargs)
 
     if pretrained_model == 'download':
         state_dict = load_state_dict_from_url(model_urls['resnet101'],progress=True)
