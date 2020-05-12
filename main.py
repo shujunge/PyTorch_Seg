@@ -11,7 +11,7 @@ from torch.utils import data
 from tqdm import tqdm
 from datasets.VocDataset import VOCSegmentation, make_batch_data_sampler, make_data_sampler
 
-from models.deeplabv3 import DeepLabV3
+from models.deeplabv3_base import DeepLabV3
 from models.unet import UNet
 from models.bisenet import BiSeNet
 from models.OCNet import OCNet

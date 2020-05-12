@@ -7,7 +7,7 @@ import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 from datasets.pascal_voc2012 import ImageData
 from datasets.my_transform_PIL import train_torchvision_transforms, inference_torchvision_transforms
-from models.deeplabv3 import DeepLabV3
+from models.deeplabv3_base import DeepLabV3
 from models.unet import UNet
 import torch.nn as nn
 import pandas as pd
