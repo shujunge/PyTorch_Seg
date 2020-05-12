@@ -15,6 +15,8 @@ from models.deeplabv3 import DeepLabV3
 from models.unet import UNet
 from models.bisenet import BiSeNet
 from models.OCNet import OCNet
+from models.ICNet import ICNet
+
 import torch.nn as nn
 import pandas as pd
 from utils.my_lr import WarmupPolyLR
@@ -46,8 +48,9 @@ if __name__ == "__main__":
 
     Model_Zoos = {
         # '%s_DeepLabV3'%(args.backbone): DeepLabV3( backbone_name= args.backbone, num_classes=args.nclasses),
-        # '%s_BiSeNet' % (args.backbone): BiSeNet(nclass=args.nclasses, backbone='resnest101',pretrained_base=True),
-        '%s_OCNet' % (args.backbone): OCNet(nclass=args.nclasses,oc_arch='pyramid', backbone='resnest101', pretrained_base=True),
+        # '%s_BiSeNet' % (args.backbone): BiSeNet(nclass=args.nclasses, backbone=args.backbone,pretrained_base=True),
+        # '%s_OCNet' % (args.backbone): OCNet(nclass=args.nclasses,oc_arch='pyramid', backbone=args.backbone, pretrained_base=True),
+        '%s_ICNet' % (args.backbone): ICNet(nclass=args.nclasses, backbone=args.backbone, pretrained_base=True),
         # '%s_UNet'%(args.backbone): UNet(in_channels= 3, n_classes=args.nclasses, bilinear=True, backbone= args.backbone, pretrained_base=True, usehypercolumns=False)
 
         }
