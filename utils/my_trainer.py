@@ -68,12 +68,12 @@ def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataload
         if np.mean(val_loss) < min_loss:
             count = 0
             min_loss  = np.mean(val_loss)
-            torch.save(model.module.state_dict(), 'weights/%s.pt'%(args.model_name))
+            torch.save(model.module.state_dict(), args.save_weight_path)
         train_history.append([optimizers.param_groups[0]['lr'],  np.mean(train_loss), train_pixacc, train_IoU,
                      np.mean(val_loss), val_pixacc , val_iou])
         x = pd.DataFrame(train_history)
         x.columns= ['lr', 'train_loss', 'train_pixacc','train_miou', 'val_loss', 'val_pixacc','val_miou']
-        x.to_csv("./results/%s.csv"%args.model_name, index=False)
+        x.to_csv(args.save_tranining_path, index=False)
         if count > args.earying_step:
             break
 
