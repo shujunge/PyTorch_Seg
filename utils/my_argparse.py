@@ -22,7 +22,7 @@ def my_argparse():
     parser.add_argument(
         "--head",
         default='DeepLabV3',
-        choices=['DeepLabV3', 'UNet','BiSeNet'],
+        choices=['DeepLabV3', 'UNet','BiSeNet','OCNet'],
         help="head to Segmentation",
         type=str
     )
