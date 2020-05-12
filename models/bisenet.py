@@ -2,23 +2,59 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from backbone.ResNest.resnest import resnest50, resnest101
+from backbone.resnet import resnet50,resnet101
 
-from backbone.resnet import resnet18, resnet34, resnet50, resnet101
-from backbone.vgg import vgg16
+
 
 class _ConvBNReLU(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0,
-                 dilation=1, groups=1, norm_layer=nn.BatchNorm2d, **kwargs):
+                 dilation=1, groups=1, relu6=False, norm_layer=nn.BatchNorm2d, **kwargs):
         super(_ConvBNReLU, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias=False)
         self.bn = norm_layer(out_channels)
-        self.relu = nn.ReLU(out_channels)
+        self.relu = nn.ReLU6(True) if relu6 else nn.ReLU(True)
 
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
         x = self.relu(x)
         return x
+
+class BiSeNet(nn.Module):
+    def __init__(self, nclass, backbone='resnet18', aux=False, jpu=False, pretrained_base=True, **kwargs):
+        super(BiSeNet, self).__init__()
+        self.aux = aux
+        self.spatial_path = SpatialPath(3, 128, **kwargs)
+        self.context_path = ContextPath(backbone, pretrained_base, **kwargs)
+        self.ffm = FeatureFusion(256, 256, 4, **kwargs)
+        self.head = _BiSeHead(256, 64, nclass, **kwargs)
+        if aux:
+            self.auxlayer1 = _BiSeHead(128, 256, nclass, **kwargs)
+            self.auxlayer2 = _BiSeHead(128, 256, nclass, **kwargs)
+
+        self.__setattr__('exclusive',
+                         ['spatial_path', 'context_path', 'ffm', 'head', 'auxlayer1', 'auxlayer2'] if aux else [
+                             'spatial_path', 'context_path', 'ffm', 'head'])
+
+    def forward(self, x):
+        size = x.size()[2:]
+        spatial_out = self.spatial_path(x)
+        context_out = self.context_path(x)
+        fusion_out = self.ffm(spatial_out, context_out[-1])
+        # outputs = []
+        x = self.head(fusion_out)
+        x = F.interpolate(x, size, mode='bilinear', align_corners=True)
+        # outputs.append(x)
+
+        # if self.aux:
+        #     auxout1 = self.auxlayer1(context_out[0])
+        #     auxout1 = F.interpolate(auxout1, size, mode='bilinear', align_corners=True)
+        #     outputs.append(auxout1)
+        #     auxout2 = self.auxlayer2(context_out[1])
+        #     auxout2 = F.interpolate(auxout2, size, mode='bilinear', align_corners=True)
+        #     outputs.append(auxout2)
+        return x #tuple(outputs)
 
 
 class _BiSeHead(nn.Module):
@@ -90,78 +126,57 @@ class AttentionRefinmentModule(nn.Module):
 
 
 class ContextPath(nn.Module):
-    def __init__(self, in_channels=3, backbone='resnet18', pretrained_base=True, norm_layer=nn.BatchNorm2d, **kwargs):
+    def __init__(self, backbone='resnet18', pretrained_base=True, norm_layer=nn.BatchNorm2d, **kwargs):
         super(ContextPath, self).__init__()
-        self.in_channels = in_channels
-        models = {}
-        models['resnet18'] = "/home/zf/.torch/models/resnet18-5c106cde.pth"
-        models['resnet34'] = "/home/zf/.torch/models/resnet34-333f7ec4.pth"
-        models['resnet50'] = "/home/zf/.torch/models/resnet50-19c8e357.pth"
-        models['resnet101'] = "/home/zf/.torch/models/resnet101-5d3b4d8f.pth"
-        models['vgg16'] = "/home/zf/.torch/models/vgg16-00b39a1b.pth"
 
-        if pretrained_base:
-            pretrained = eval(backbone)(in_channels=self.in_channels, pretrained_model=models[backbone], **kwargs)
+        if backbone in ['resnest50','resnest101']:
+            pretrained = eval(backbone)(pretrained=pretrained_base, **kwargs)
+        elif backbone in['resnet50', 'resnet101']:
+            pretrained = eval(backbone)(pretrained_model=pretrained_base, **kwargs)
         else:
-            pretrained = eval(backbone)(in_channels=self.in_channels, pretrained_model=None, **kwargs)
+            raise RuntimeError('unknown backbone: {}'.format(backbone))
+        self.conv1 = pretrained.conv1
+        self.bn1 = pretrained.bn1
+        self.relu = pretrained.relu
+        self.maxpool = pretrained.maxpool
+        self.layer1 = pretrained.layer1
+        self.layer2 = pretrained.layer2
+        self.layer3 = pretrained.layer3
+        self.layer4 = pretrained.layer4
 
-        self.backbone =backbone
-        self.pretrained = pretrained
-        if self.backbone[:6] == "resnet":
-            self.conv1 = pretrained.conv1
-            self.bn1 = pretrained.bn1
-            self.relu = pretrained.relu
-            self.maxpool = pretrained.maxpool
-            self.layer1 = pretrained.layer1
-            self.layer2 = pretrained.layer2
-            self.layer3 = pretrained.layer3
-            self.layer4 = pretrained.layer4
-
-        self.inter_channels = 128
-        self.norm_layer = norm_layer
-
-        self.refines = nn.ModuleList(
-            [_ConvBNReLU(self.inter_channels, self.inter_channels, 3, 1, 1, norm_layer=norm_layer),
-             _ConvBNReLU(self.inter_channels, self.inter_channels, 3, 1, 1, norm_layer=norm_layer)])
-        self.params= {'resnet50' : 2048, 'resnet34' : 512, 'resnet18': 512}
-
-        n_channels = self.params[self.backbone]
+        inter_channels = 128
+        list_param={'resnet50':2048,'resnet101':2048,'resnest50':2048,'resnest101': 2048 }
+        self.global_context = _GlobalAvgPooling(list_param[backbone], inter_channels, norm_layer)
 
         self.arms = nn.ModuleList(
-            [AttentionRefinmentModule(n_channels, self.inter_channels, self.norm_layer),
-             AttentionRefinmentModule(n_channels//2, self.inter_channels, self.norm_layer)]
+            [AttentionRefinmentModule(list_param[backbone], inter_channels, norm_layer, **kwargs),
+             AttentionRefinmentModule(int(list_param[backbone]/2), inter_channels, norm_layer, **kwargs)]
         )
-        self.global_context = _GlobalAvgPooling(n_channels, self.inter_channels, self.norm_layer)
+        self.refines = nn.ModuleList(
+            [_ConvBNReLU(inter_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer),
+             _ConvBNReLU(inter_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer)]
+        )
 
     def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+
         context_blocks = []
-        if self.backbone[:6] == "resnet":
-            x = self.conv1(x)
-            x = self.bn1(x)
-            x = self.relu(x)
-            x = self.maxpool(x)
-            x = self.layer1(x)
+        context_blocks.append(x)
+        x = self.layer2(x)
+        context_blocks.append(x)
+        c3 = self.layer3(x)
+        context_blocks.append(c3)
+        c4 = self.layer4(c3)
+        context_blocks.append(c4)
+        context_blocks.reverse()
 
-            context_blocks.append(x)
-            x = self.layer2(x)
-            context_blocks.append(x)
-            c3 = self.layer3(x)
-            context_blocks.append(c3)
-            c4 = self.layer4(c3)
-            context_blocks.append(c4)
-            context_blocks.reverse()
-            c4 = context_blocks[0]
-
-        else:
-            x = self.pretrained(x)
-            for index in x:
-                context_blocks.append(index)
-            context_blocks.reverse()
-            c4 = context_blocks[0]
-
-        last_feature = self.global_context(c4)
+        global_context = self.global_context(c4)
+        last_feature = global_context
         context_outputs = []
-
         for i, (feature, arm, refine) in enumerate(zip(context_blocks[:2], self.arms, self.refines)):
             feature = arm(feature)
             feature += last_feature
@@ -192,37 +207,9 @@ class FeatureFusion(nn.Module):
         return out
 
 
-class BiSeNet(nn.Module):
-    def __init__(self, in_channels, nclass, backbone='resnet18', aux=False, pretrained_base=True, **kwargs):
-        super(BiSeNet, self).__init__()
-        self.aux = aux
-        self.spatial_path = SpatialPath(in_channels, 128, **kwargs)
-        self.context_path = ContextPath(in_channels, backbone, pretrained_base, **kwargs)
-        self.ffm = FeatureFusion(256, 256, 4, **kwargs)
-        self.head = _BiSeHead(256, 64, nclass, **kwargs)
-        if aux:
-            self.auxlayer1 = _BiSeHead(128, 256, nclass, **kwargs)
-            self.auxlayer2 = _BiSeHead(128, 256, nclass, **kwargs)
-
-        self.__setattr__('exclusive',
-                         ['spatial_path', 'context_path', 'ffm', 'head', 'auxlayer1', 'auxlayer2'] if aux else [
-                             'spatial_path', 'context_path', 'ffm', 'head'])
-
-    def forward(self, x):
-        size = x.size()[2:]
-        spatial_out = self.spatial_path(x) # [2, 128, 60, 60]
-        context_out = self.context_path(x)
-        fusion_out = self.ffm(spatial_out, context_out[-1])
-        x = self.head(fusion_out)
-        x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        return x
-
-
 if __name__ == '__main__':
-    img = torch.randn(2, 3, 480, 480)
-    model = BiSeNet(in_channels=3, nclass=1, backbone='resnet18', pretrained_base=True)
+    img = torch.randn(2, 3, 224, 224)
+    model = BiSeNet(19, backbone='resnest101', pretrained_base=False)
+    print(model.exclusive)
     out = model(img)
     print(out.size())
-
-
-

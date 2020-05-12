@@ -368,6 +368,8 @@ class DeepLabV3(nn.Module):
             feature_map = self.backbone(x)[-1] # (shape: (batch_size, 512, h/16, w/16))
         elif self.backbone_name == 'RegNet200':
             feature_map = self.backbone.net[:4](x)
+        elif self.backbone_name in ['resnest50', 'resnest101']:
+            feature_map = self.backbone(x)[-2]
         else:
             feature_map = self.backbone(x)
         # (assuming self.resnet is ResNet18_OS16 or ResNet34_OS16. If self.resnet is ResNet18_OS8 or ResNet34_OS8, it will be (batch_size, 512, h/8, w/8). If self.resnet is ResNet50-152, it will be (batch_size, 4*512, h/16, w/16))

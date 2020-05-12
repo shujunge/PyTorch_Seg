@@ -5,8 +5,7 @@ import os
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-#from datasets.pascal_voc2012 import ImageData
-#from datasets.my_transform_PIL import train_torchvision_transforms
+
 from torchvision import transforms
 from torch.utils import data
 from tqdm import tqdm
@@ -14,6 +13,7 @@ from datasets.VocDataset import VOCSegmentation, make_batch_data_sampler, make_d
 
 from models.deeplabv3 import DeepLabV3
 from models.unet import UNet
+from models.bisenet import BiSeNet
 import torch.nn as nn
 import pandas as pd
 from utils.my_loss import CrossEntropyLoss2d,DiceLoss
@@ -45,7 +45,8 @@ if __name__ == "__main__":
         cudnn.benchmark = True
 
     Model_Zoos = {
-        '%s_DeepLabV3'%(args.backbone): DeepLabV3( backbone_name= args.backbone, num_classes=args.nclasses),
+        # '%s_DeepLabV3'%(args.backbone): DeepLabV3( backbone_name= args.backbone, num_classes=args.nclasses),
+        '%s_BiSeNet' % (args.backbone): BiSeNet(nclass=args.nclasses, backbone='resnest101',pretrained_base=True),
         # '%s_UNet'%(args.backbone): UNet(in_channels= 3, n_classes=args.nclasses, bilinear=True, backbone= args.backbone, pretrained_base=True, usehypercolumns=False)
 
         }

@@ -302,4 +302,4 @@ class ResNet(nn.Module):
         #     x = self.drop(x)
         # x = self.fc(x)
 
-        return x3
+        return x, x1, x2, x3, x4
