@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # hyper-parameter
     args = my_argparse()
-    print(args)
+
     os.environ["CUDA_VISIBLE_DEVICES"] =args.GPUs 
 
     args.model_name = '%dx%d_%s_%s' %(args.image_size, args.image_size, args.backbone, args.head)
@@ -46,14 +46,18 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         cudnn.benchmark = True
 
-    Model_Zoos = {
-        # '%s_DeepLabV3'%(args.backbone): DeepLabV3( backbone_name= args.backbone, num_classes=args.nclasses),
-        # '%s_BiSeNet' % (args.backbone): BiSeNet(nclass=args.nclasses, backbone=args.backbone,pretrained_base=True),
-        # '%s_OCNet' % (args.backbone): OCNet(nclass=args.nclasses,oc_arch='pyramid', backbone=args.backbone, pretrained_base=True),
-        '%s_ICNet' % (args.backbone): ICNet(nclass=args.nclasses, backbone=args.backbone, pretrained_base=True),
-        # '%s_UNet'%(args.backbone): UNet(in_channels= 3, n_classes=args.nclasses, bilinear=True, backbone= args.backbone, pretrained_base=True, usehypercolumns=False)
+    args.save_weight_path = "./weights/%s.pt" % args.model_name
+    args.save_tranining_path = "./results/%s.csv" % args.model_name
+    print(args)
 
-        }
+    Model_Params = {'DeepLabV3': {'backbone_name': args.backbone, 'num_classes': args.nclasses},
+                    'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,
+                              'pretrained_base': True},
+                    'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
+                             'pretrained_base': True, 'usehypercolumns': False},
+                    }
 
     input_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -83,7 +87,7 @@ if __name__ == "__main__":
     print("train_dataset:", len(train_data), train_data[0][0].shape, train_data[0][1].shape)
     print("val_dataset:", len(val_data))
 
-    model = Model_Zoos["%s_%s" % (args.backbone, args.head)].to(args.device)
+    model = eval(args.head)(**Model_Params[args.head]).to(args.device)
 
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
