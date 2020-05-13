@@ -88,10 +88,10 @@ if __name__ == "__main__":
     # model.load_state_dict(torch.load(args.weight_path))
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-    if args.head == 'ICNet':
-        loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
-    elif args.head == 'ENcNet':
+    if args.head == 'ENcNet':
         loss_fn = EncNetLoss(nclass=args.nclasses, ignore_index=-1)
+        # elif args.head =='ENcNet':
+        # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
     else:
         loss_fn = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False,ignore_index=-1)  # [nn.BCEWithLogitsLoss(), DiceLoss()]
 
