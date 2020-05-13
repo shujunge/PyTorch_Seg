@@ -16,13 +16,19 @@ from models.unet import UNet
 from models.bisenet import BiSeNet
 from models.OCNet import OCNet
 from models.ICNet import ICNet
+from models.PSPNet import PSPNet
+from models.danet import DANet
+from models.dunet import DUNet
+from models.encnet import EncNet
+from models.DenseASPP import DenseASPP
+
 
 import torch.nn as nn
 import pandas as pd
 from utils.my_lr import WarmupPolyLR
 from utils.my_trainer import training_loop
 from utils.my_argparse import my_argparse
-from utils.loss import MixSoftmaxCrossEntropyLoss
+from utils.loss import MixSoftmaxCrossEntropyLoss,ICNetLoss, EncNetLoss
 from utils.score import SegmentationMetric
 
 if __name__ == "__main__":
@@ -50,11 +56,15 @@ if __name__ == "__main__":
     args.save_tranining_path = "./results/%s.csv" % args.model_name
     print(args)
 
-    Model_Params = {'DeepLabV3': {'backbone_name': args.backbone, 'num_classes': args.nclasses},
+    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True },
                     'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,
-                              'pretrained_base': True},
+                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,'pretrained_base': True},
                     'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'PSPNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'DANet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
                              'pretrained_base': True, 'usehypercolumns': False},
                     }
@@ -97,7 +107,12 @@ if __name__ == "__main__":
 
     #loss_fn = nn.BCELoss()
     # loss_fn = nn.CrossEntropyLoss(ignore_index=255)
-    loss_fn  = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False, ignore_index=-1) # [nn.BCEWithLogitsLoss(), DiceLoss()]
+    if args.head =='ICNet':
+        loss_fn = ICNetLoss(nclass= args.nclasses, ignore_index=-1)
+    elif args.head =='ENcNet':
+        loss_fn = EncNetLoss(nclass=args.nclasses, ignore_index=-1)
+    else:
+        loss_fn  = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False, ignore_index=-1) # [nn.BCEWithLogitsLoss(), DiceLoss()]
 
 
     # lr scheduling

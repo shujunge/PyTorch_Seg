@@ -335,10 +335,10 @@ class ASPP_Bottleneck(nn.Module):
     
 
 class DeepLabV3(nn.Module):
-    def __init__(self, backbone_name='resnet101', num_classes= 20):
+    def __init__(self,  nclass, backbone='resnet50',pretrained_base=True):
         super(DeepLabV3, self).__init__()
-        self.backbone_name = backbone_name
-        self.num_classes = num_classes
+        self.backbone_name = backbone
+        self.num_classes = nclass
         if self.backbone_name =='resnet101':
             self.backbone = ResNet101_OS16()
             self.aspp = ASPP(in_channels=2048, num_classes=self.num_classes)
@@ -382,7 +382,7 @@ class DeepLabV3(nn.Module):
 if __name__=="__main__":
 
     x = torch.randn(2,3, 512, 512)
-    model = DeepLabV3(backbone_name='RegNet200')
+    model = DeepLabV3(nclass=20, backbone='RegNet200')
     print(model(x).size())
     from torchsummary import summary
     summary(model,(3,512,512))
