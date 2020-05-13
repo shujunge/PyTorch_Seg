@@ -14,7 +14,7 @@ def my_argparse():
     parser.add_argument(
         "--backbone",
         default="resnet101",
-        choices=['resnet50','resnet101',  'EfficientNet_B4','resnest50','resnest101','RegNet200'],
+        choices=['resnet50','resnet101',  'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
         help="config the backbone of model",
         type=str,
     )
@@ -22,7 +22,7 @@ def my_argparse():
     parser.add_argument(
         "--head",
         default='DeepLabV3',
-        choices=['DeepLabV3', 'UNet','BiSeNet','OCNet','ICNet'],
+        choices=['DeepLabV3', 'UNet','BiSeNet','OCNet','ICNet','DenseASPP','DANet','DUNet','EncNet','PSPNet'],
         help="head to Segmentation",
         type=str
     )

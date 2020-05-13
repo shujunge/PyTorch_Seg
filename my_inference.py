@@ -7,7 +7,7 @@ import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 from datasets.pascal_voc2012 import ImageData
 from datasets.my_transform_PIL import train_torchvision_transforms, inference_torchvision_transforms
-from models.deeplabv3 import DeepLabV3
+from models.deeplabv3_base import DeepLabV3
 from models.unet import UNet
 import torch.nn as nn
 import pandas as pd
@@ -18,7 +18,7 @@ from utils.my_argparse import my_argparse
 from datasets.VocDataset import VOCSegmentation, make_batch_data_sampler, make_data_sampler
 from torchvision import transforms
 from torch.utils import data
-from utils.loss import MixSoftmaxCrossEntropyLoss
+from utils.loss import MixSoftmaxCrossEntropyLoss,ICNetLoss,EncNetLoss
 
 
 if __name__ == "__main__":
@@ -43,11 +43,15 @@ if __name__ == "__main__":
 
     print(args)
 
-    Model_Params = {'DeepLabV3': {'backbone_name': args.backbone, 'num_classes': args.nclasses},
+    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True },
                     'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,
-                              'pretrained_base': True},
+                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,'pretrained_base': True},
                     'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'PSPNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'DANet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
                              'pretrained_base': True, 'usehypercolumns': False},
                     }
@@ -84,7 +88,13 @@ if __name__ == "__main__":
     # model.load_state_dict(torch.load(args.weight_path))
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-    loss_fn  = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False, ignore_index=-1)
+    if args.head == 'ENcNet':
+        loss_fn = EncNetLoss(nclass=args.nclasses, ignore_index=-1)
+        # elif args.head =='ENcNet':
+        # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
+    else:
+        loss_fn = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False,ignore_index=-1)  # [nn.BCEWithLogitsLoss(), DiceLoss()]
+
     evalute(args, model, loss_fn, val_Dataloader)
 
 
