@@ -32,23 +32,25 @@ class DeepLabV3(SegBaseModel):
 
     def __init__(self, nclass, backbone='resnet50', aux=False, pretrained_base=True, **kwargs):
         super(DeepLabV3, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
-        self.aspp = ASPP(in_channels=1024, num_classes=nclass)
+        model_params = {'resnet101':2048, 'resnet50':2048,
+                        'resnet101_v1s':2048, 'resnet50_v1s':2048,
+                        'EfficientNet_B4':160, 'resnest50':1024, 'resnest101':1024}
 
-
+        self.aspp = ASPP(in_channels=model_params[backbone], num_classes=nclass)
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
 
     def forward(self, x):
         size = x.size()[2:]
         _, _, c3, c4 = self.base_forward(x)
-        # outputs = []
+
         x = self.aspp(c3)
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        # outputs.append(x)
 
         # if self.aux:
         #     auxout = self.auxlayer(c3)
         #     auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
         #     outputs.append(auxout)
+
         return x #tuple(outputs)
 
 class ASPP(nn.Module):
@@ -102,7 +104,7 @@ class ASPP(nn.Module):
 if __name__ == '__main__':
 
 
-    model = DeepLabV3(20, backbone='resnest101', pretrained_base= False,)
+    model = DeepLabV3(20, backbone='resnet101_v1s', pretrained_base= False,)
     img = torch.randn(2, 3, 480, 480)
     output = model(img)
     print(output.size())
