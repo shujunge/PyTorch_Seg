@@ -43,8 +43,8 @@ class SegBaseModel(nn.Module):
         """forwarding pre-trained network"""
 
         if self.backbone == "EfficientNet_B4":
-            x = self.pretrained(x)
-            return x[0],  x[1], x[2], x[3]
+            _, c1, c2, c3, c4 = self.pretrained(x)
+            return c1, c2, c3, c4
         else:
             x = self.pretrained.conv1(x)
             x = self.pretrained.bn1(x)
