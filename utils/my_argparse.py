@@ -14,7 +14,9 @@ def my_argparse():
     parser.add_argument(
         "--backbone",
         default="resnet101",
-        choices=['resnet50','resnet101',  'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
+        choices=['resnet50','resnet50_v1s',
+                 'resnet101',  'resnet101_v1s','resnet152_v1s',
+                 'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
         help="config the backbone of model",
         type=str,
     )
