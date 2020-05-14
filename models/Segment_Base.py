@@ -1,5 +1,6 @@
 from backbone.resnetv1b import resnet50_v1s, resnet101_v1s, resnet152_v1s
 from backbone.ResNest.resnest import resnest50, resnest101
+from backbone.resnet import resnet101, resnet50
 from backbone.EfficientNet import EfficientNet_B4
 import torch
 import torch.nn as nn
@@ -22,16 +23,16 @@ class SegBaseModel(nn.Module):
         self.nclass = nclass
         self.backbone = backbone
 
-        models = {}
-        models['resnet50'] = "/home/zfw/.torch/models/resnet50-19c8e357.pth"
-        models['resnet101'] = "/home/zfw/.torch/models/resnet101-5d3b4d8f.pth"
+        models_name = {}
+        models_name['resnet50'] = "/home/zfw/.torch/models/resnet50-19c8e357.pth"
+        models_name['resnet101'] = "/home/zfw/.torch/models/resnet101-5d3b4d8f.pth"
         # models['xception39'] = "/home/zfw/.torch/models/xception-43020ad28.pth"
-        models['EfficientNet_B4'] = "/home/zfw/.torch/models/efficientnet-b4-6ed6700e.pth"
+        models_name['EfficientNet_B4'] = "/home/zfw/.torch/models/efficientnet-b4-6ed6700e.pth"
 
         if backbone in[ 'resnet50_v1s','resnet101_v1s', 'resnet152_v1s']:
             self.pretrained = eval(backbone)(pretrained=pretrained_base, dilated=dilated, **kwargs)
-        elif backbone in models.keys():
-            self.pretrained = eval(backbone)(in_channels=3, pretrained_model=models[backbone], **kwargs) #
+        elif backbone in list(models_name.keys()):
+            self.pretrained = eval(backbone)(in_channels=3, pretrained_model=models_name[backbone], **kwargs) #
         elif backbone in ['resnest50', 'resnest101']:
             self.pretrained = eval(backbone)(pretrained=pretrained_base, **kwargs)
         else:

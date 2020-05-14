@@ -11,7 +11,7 @@ from torch.utils import data
 from tqdm import tqdm
 from datasets.VocDataset import VOCSegmentation, make_batch_data_sampler, make_data_sampler
 
-from models.deeplabv3_base import DeepLabV3
+from models.deeplabv3 import DeepLabV3
 from models.unet import UNet
 from models.bisenet import BiSeNet
 from models.OCNet import OCNet
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     args.save_tranining_path = "./results/%s.csv" % args.model_name
     print(args)
 
-    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True },
+    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'stage':args.stage, 'backbone': args.backbone, 'pretrained_base': True },
                     'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,'pretrained_base': True},
                     'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},

@@ -29,6 +29,13 @@ def my_argparse():
         type=str
     )
     parser.add_argument(
+        "--stage",
+        default='c3',
+        choices=['c3', 'c4'],
+        help="the size of encoder features",
+        type=str
+    )
+    parser.add_argument(
         "--weight_path",
         default=None,
         help="config path of model weight",
