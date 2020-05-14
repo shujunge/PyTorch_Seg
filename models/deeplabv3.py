@@ -42,8 +42,11 @@ class DeepLabV3(SegBaseModel):
     def forward(self, x):
         size = x.size()[2:]
         _, _, c3, c4 = self.base_forward(x)
+        if self.backbone == "EfficientNet_B4":
+            x = self.aspp(c4)
+        else:
+            x = self.aspp(c3)
 
-        x = self.aspp(c3)
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
 
         # if self.aux:
