@@ -32,7 +32,7 @@ class DeepLabV3(SegBaseModel):
 
     def __init__(self, nclass, backbone='resnet50', aux=False, pretrained_base=True, **kwargs):
         super(DeepLabV3, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
-        self.head = _DeepLabHead(nclass, **kwargs)
+        self.aspp = ASPP(in_channels=1024, num_classes=nclass)
 
 
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
@@ -41,7 +41,7 @@ class DeepLabV3(SegBaseModel):
         size = x.size()[2:]
         _, _, c3, c4 = self.base_forward(x)
         # outputs = []
-        x = self.head(c4)
+        x = self.aspp(c3)
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
         # outputs.append(x)
 
@@ -51,86 +51,52 @@ class DeepLabV3(SegBaseModel):
         #     outputs.append(auxout)
         return x #tuple(outputs)
 
+class ASPP(nn.Module):
+    def __init__(self, in_channels, num_classes):
+        super(ASPP, self).__init__()
 
-class _DeepLabHead(nn.Module):
-    def __init__(self, nclass, norm_layer=nn.BatchNorm2d, norm_kwargs=None, **kwargs):
-        super(_DeepLabHead, self).__init__()
-        self.aspp = _ASPP(2048, [12, 24, 36], norm_layer=norm_layer, norm_kwargs=norm_kwargs, **kwargs)
-        self.block = nn.Sequential(
-            nn.Conv2d(256, 256, 3, padding=1, bias=False),
-            norm_layer(256, **({} if norm_kwargs is None else norm_kwargs)),
-            nn.ReLU(True),
-            nn.Dropout(0.1),
-            nn.Conv2d(256, nclass, 1)
-        )
+        self.conv_1x1_1 = nn.Conv2d(in_channels, 256, kernel_size=1)
+        self.bn_conv_1x1_1 = nn.GroupNorm(num_channels=256, num_groups=2)
 
-    def forward(self, x):
-        x = self.aspp(x)
-        return self.block(x)
+        self.conv_3x3_1 = nn.Conv2d(in_channels, 256, kernel_size=3, stride=1, padding=6, dilation=6)
+        self.bn_conv_3x3_1 = nn.GroupNorm(num_channels=256, num_groups=2)
 
+        self.conv_3x3_2 = nn.Conv2d(in_channels, 256, kernel_size=3, stride=1, padding=12, dilation=12)
+        self.bn_conv_3x3_2 = nn.GroupNorm(num_channels=256, num_groups=2)
 
-class _ASPPConv(nn.Module):
-    def __init__(self, in_channels, out_channels, atrous_rate, norm_layer, norm_kwargs):
-        super(_ASPPConv, self).__init__()
-        self.block = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, padding=atrous_rate, dilation=atrous_rate, bias=False),
-            norm_layer(out_channels, **({} if norm_kwargs is None else norm_kwargs)),
-            nn.ReLU(True)
-        )
+        self.conv_3x3_3 = nn.Conv2d(in_channels, 256, kernel_size=3, stride=1, padding=18, dilation=18)
+        self.bn_conv_3x3_3 = nn.GroupNorm(num_channels=256, num_groups=2)
 
-    def forward(self, x):
-        return self.block(x)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
 
+        self.conv_1x1_2 = nn.Conv2d(in_channels, 256, kernel_size=1)
+        self.bn_conv_1x1_2 = nn.GroupNorm(num_channels=256, num_groups=2)
 
-class _AsppPooling(nn.Module):
-    def __init__(self, in_channels, out_channels, norm_layer, norm_kwargs, **kwargs):
-        super(_AsppPooling, self).__init__()
-        self.gap = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels, out_channels, 1, bias=False),
-            norm_layer(out_channels, **({} if norm_kwargs is None else norm_kwargs)),
-            nn.ReLU(True)
-        )
+        self.conv_1x1_3 = nn.Conv2d(1280, 256, kernel_size=1) # (1280 = 5*256)
+        self.bn_conv_1x1_3 = nn.GroupNorm(num_channels=256, num_groups=2)
 
-    def forward(self, x):
-        size = x.size()[2:]
-        pool = self.gap(x)
-        out = F.interpolate(pool, size, mode='bilinear', align_corners=True)
+        self.conv_1x1_4 = nn.Conv2d(256, num_classes, kernel_size=1)
+
+    def forward(self, feature_map):
+        # (feature_map has shape (batch_size, 512, h/16, w/16)) (assuming self.resnet is ResNet18_OS16 or ResNet34_OS16. If self.resnet instead is ResNet18_OS8 or ResNet34_OS8, it will be (batch_size, 512, h/8, w/8))
+
+        feature_map_h = feature_map.size()[2] # (== h/16)
+        feature_map_w = feature_map.size()[3] # (== w/16)
+
+        out_1x1 = F.relu(self.bn_conv_1x1_1(self.conv_1x1_1(feature_map))) # (shape: (batch_size, 256, h/16, w/16))
+        out_3x3_1 = F.relu(self.bn_conv_3x3_1(self.conv_3x3_1(feature_map))) # (shape: (batch_size, 256, h/16, w/16))
+        out_3x3_2 = F.relu(self.bn_conv_3x3_2(self.conv_3x3_2(feature_map))) # (shape: (batch_size, 256, h/16, w/16))
+        out_3x3_3 = F.relu(self.bn_conv_3x3_3(self.conv_3x3_3(feature_map))) # (shape: (batch_size, 256, h/16, w/16))
+
+        out_img = self.avg_pool(feature_map) # (shape: (batch_size, 512, 1, 1))
+        out_img = F.relu(self.bn_conv_1x1_2(self.conv_1x1_2(out_img))) # (shape: (batch_size, 256, 1, 1))
+        out_img = F.upsample(out_img, size=(feature_map_h, feature_map_w), mode="bilinear") # (shape: (batch_size, 256, h/16, w/16))
+
+        out = torch.cat([out_1x1, out_3x3_1, out_3x3_2, out_3x3_3, out_img], 1) # (shape: (batch_size, 1280, h/16, w/16))
+        out = F.relu(self.bn_conv_1x1_3(self.conv_1x1_3(out))) # (shape: (batch_size, 256, h/16, w/16))
+        out = self.conv_1x1_4(out) # (shape: (batch_size, num_classes, h/16, w/16))
+
         return out
-
-
-class _ASPP(nn.Module):
-    def __init__(self, in_channels, atrous_rates, norm_layer, norm_kwargs, **kwargs):
-        super(_ASPP, self).__init__()
-        out_channels = 256
-        self.b0 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 1, bias=False),
-            norm_layer(out_channels, **({} if norm_kwargs is None else norm_kwargs)),
-            nn.ReLU(True)
-        )
-
-        rate1, rate2, rate3 = tuple(atrous_rates)
-        self.b1 = _ASPPConv(in_channels, out_channels, rate1, norm_layer, norm_kwargs)
-        self.b2 = _ASPPConv(in_channels, out_channels, rate2, norm_layer, norm_kwargs)
-        self.b3 = _ASPPConv(in_channels, out_channels, rate3, norm_layer, norm_kwargs)
-        self.b4 = _AsppPooling(in_channels, out_channels, norm_layer=norm_layer, norm_kwargs=norm_kwargs)
-
-        self.project = nn.Sequential(
-            nn.Conv2d(5 * out_channels, out_channels, 1, bias=False),
-            norm_layer(out_channels, **({} if norm_kwargs is None else norm_kwargs)),
-            nn.ReLU(True),
-            nn.Dropout(0.5)
-        )
-
-    def forward(self, x):
-        feat1 = self.b0(x)
-        feat2 = self.b1(x)
-        feat3 = self.b2(x)
-        feat4 = self.b3(x)
-        feat5 = self.b4(x)
-        x = torch.cat((feat1, feat2, feat3, feat4, feat5), dim=1)
-        x = self.project(x)
-        return x
 
 
 if __name__ == '__main__':
