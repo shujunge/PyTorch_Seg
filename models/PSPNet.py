@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from  models.Segment_Base import SegBaseModel
+from  models.Segment_Base import SegBaseModel, model_params
 
 __all__ = ['PSPNet']
 
@@ -29,17 +29,19 @@ class PSPNet(SegBaseModel):
         "Pyramid scene parsing network." *CVPR*, 2017
     """
 
-    def __init__(self, nclass, backbone='resnet50', aux=False, pretrained_base=True, **kwargs):
+    def __init__(self, nclass, backbone='resnet50', stage='c3', aux=False, pretrained_base=True, **kwargs):
         super(PSPNet, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
-        self.head = _PSPHead(nclass, **kwargs)
+
+        self.stage = stage
+        self.head = _PSPHead(nclass, in_channels= model_params[self.stage][backbone], **kwargs)
 
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
 
     def forward(self, x):
         size = x.size()[2:]
-        _, _, c3, c4 = self.base_forward(x)
+        c1, c2, c3, c4 = self.base_forward(x)
         # outputs = []
-        x = self.head(c4)
+        x = self.head(eval(self.stage))
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
         # outputs.append(x)
 
@@ -81,11 +83,11 @@ class _PyramidPooling(nn.Module):
 
 
 class _PSPHead(nn.Module):
-    def __init__(self, nclass, norm_layer=nn.BatchNorm2d, norm_kwargs=None, **kwargs):
+    def __init__(self, nclass, in_channels= 2048, norm_layer=nn.BatchNorm2d, norm_kwargs=None, **kwargs):
         super(_PSPHead, self).__init__()
-        self.psp = _PyramidPooling(2048, norm_layer=norm_layer, norm_kwargs=norm_kwargs)
+        self.psp = _PyramidPooling(in_channels, norm_layer=norm_layer, norm_kwargs=norm_kwargs)
         self.block = nn.Sequential(
-            nn.Conv2d(4096, 512, 3, padding=1, bias=False),
+            nn.Conv2d(in_channels*2, 512, 3, padding=1, bias=False),
             norm_layer(512, **({} if norm_kwargs is None else norm_kwargs)),
             nn.ReLU(True),
             nn.Dropout(0.1),
@@ -97,7 +99,8 @@ class _PSPHead(nn.Module):
         return self.block(x)
 
 if __name__ == '__main__':
-    model = PSPNet(20, backbone='resnest101', pretrained_base=False)
-    img = torch.randn(4, 3, 480, 480)
+
+    model = PSPNet(20, backbone='resnest101',stage='c4',pretrained_base=False)
+    img = torch.randn(2, 3, 224, 224)
     output = model(img)
     print(output.size())

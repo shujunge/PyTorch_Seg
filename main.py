@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     os.environ["CUDA_VISIBLE_DEVICES"] =args.GPUs 
 
-    args.model_name = '%dx%d_%s_%s' %(args.image_size, args.image_size, args.backbone, args.head)
+    args.model_name = '%dx%d_%s_%s_stage_%s' %(args.image_size, args.image_size, args.backbone, args.head, args.stage)
     args.nclasses = 21
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  ##判断是否有gpu
     if torch.cuda.is_available():
@@ -58,11 +58,11 @@ if __name__ == "__main__":
 
     Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'stage':args.stage, 'backbone': args.backbone, 'pretrained_base': True },
                     'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,'pretrained_base': True},
+                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'stage':args.stage,'backbone': args.backbone,'pretrained_base': True},
                     'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'PSPNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DANet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+                    'PSPNet': {'nclass': args.nclasses, 'stage':args.stage,'backbone': args.backbone, 'pretrained_base': True},
+                    'DANet': {'nclass': args.nclasses,  'stage':args.stage, 'backbone': args.backbone, 'pretrained_base': True},
                     'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,

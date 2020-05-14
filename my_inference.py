@@ -54,18 +54,20 @@ if __name__ == "__main__":
 
     print(args)
 
-    Model_Params = {'DeepLabV3': {'nclass': args.nclasses,'stage':args.stage, 'backbone': args.backbone, 'pretrained_base': True },
-                    'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,'pretrained_base': True},
-                    'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'PSPNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DANet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
-                             'pretrained_base': True, 'usehypercolumns': False},
-                    }
+    Model_Params = {
+        'DeepLabV3': {'nclass': args.nclasses, 'stage': args.stage, 'backbone': args.backbone, 'pretrained_base': True},
+        'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'stage': args.stage, 'backbone': args.backbone,
+                  'pretrained_base': True},
+        'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'PSPNet': {'nclass': args.nclasses, 'stage': args.stage, 'backbone': args.backbone, 'pretrained_base': True},
+        'DANet': {'nclass': args.nclasses, 'stage': args.stage, 'backbone': args.backbone, 'pretrained_base': True},
+        'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
+                 'pretrained_base': True, 'usehypercolumns': False},
+        }
 
 
     input_transform = transforms.Compose([

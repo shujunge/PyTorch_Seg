@@ -17,7 +17,8 @@ def my_argparse():
         choices=['resnet50','resnet50_v1s',
                  'resnet101',  'resnet101_v1s','resnet152_v1s',
                  'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
-        help="config the backbone of model",
+        help="config the backbone of model \n Segment_base in ['resnet50','resnet50_v1s',\
+             'resnet101',  'resnet101_v1s','resnet152_v1s', 'EfficientNet_B4','resnest50','resnest101']",
         type=str,
     )
 
@@ -32,7 +33,7 @@ def my_argparse():
         "--stage",
         default='c3',
         choices=['c3', 'c4'],
-        help="the size of encoder features",
+        help="the size of encoder features \n c3,c4 for [DeepLabV3,PSPNet,OCNet, DANet] ",
         type=str
     )
     parser.add_argument(

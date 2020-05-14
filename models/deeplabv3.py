@@ -3,19 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.Segment_Base import SegBaseModel
+from models.Segment_Base import SegBaseModel, model_params
 
 
 __all__ = ['DeepLabV3']
-model_params = {}
-c3_model_params = {'resnet101': 2048, 'resnet50': 2048,
-                   'resnet101_v1s': 2048, 'resnet50_v1s': 2048,
-                   'EfficientNet_B4': 160, 'resnest50': 1024, 'resnest101': 1024}
-c4_model_params = {'resnet101': 2048, 'resnet50': 2048,
-                   'resnet101_v1s': 2048, 'resnet50_v1s': 2048,
-                   'EfficientNet_B4': 1792, 'resnest50': 2048, 'resnest101': 2048}
-model_params['c3'] = c3_model_params
-model_params['c4'] = c4_model_params
 
 
 class DeepLabV3(SegBaseModel):
@@ -111,7 +102,7 @@ class ASPP(nn.Module):
 if __name__ == '__main__':
 
 
-    model = DeepLabV3(20, backbone='resnet101',stage='c4', pretrained_base= False,)
+    model = DeepLabV3(20, backbone='resnest101',stage='c4', pretrained_base= False,)
     img = torch.randn(2, 3, 480, 480)
     output = model(img)
     print(output.size())

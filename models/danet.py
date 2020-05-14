@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.Segment_Base import SegBaseModel
+from models.Segment_Base import SegBaseModel,model_params
 
 class DANet(SegBaseModel):
     r"""Pyramid Scene Parsing Network
@@ -24,9 +24,11 @@ class DANet(SegBaseModel):
         "Dual Attention Network for Scene Segmentation." *CVPR*, 2019
     """
 
-    def __init__(self, nclass, backbone='resnet50', aux=True, pretrained_base=True, **kwargs):
+    def __init__(self, nclass, backbone='resnet50',stage='c3', aux=True, pretrained_base=True, **kwargs):
         super(DANet, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
-        self.head = _DAHead(2048, nclass, aux, **kwargs)
+
+        self.stage = stage
+        self.head = _DAHead(model_params[self.stage][backbone], nclass, aux, **kwargs)
 
         self.__setattr__('exclusive', ['head'])
 
@@ -34,7 +36,7 @@ class DANet(SegBaseModel):
         size = x.size()[2:]
         _, _, c3, c4 = self.base_forward(x)
         # outputs = []
-        x = self.head(c4)
+        x = self.head(eval(self.stage))
         x0 = F.interpolate(x[0], size, mode='bilinear', align_corners=True)
         # outputs.append(x0)
 
