@@ -34,7 +34,7 @@ class DeepLabV3(SegBaseModel):
         super(DeepLabV3, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
         model_params = {'resnet101':2048, 'resnet50':2048,
                         'resnet101_v1s':2048, 'resnet50_v1s':2048,
-                        'EfficientNet_B4':160, 'resnest50':1024, 'resnest101':1024}
+                        'EfficientNet_B4':1792, 'resnest50':1024, 'resnest101':1024}
 
         self.aspp = ASPP(in_channels=model_params[backbone], num_classes=nclass)
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
