@@ -40,7 +40,7 @@ if __name__ == "__main__":
     args = my_argparse()
     os.environ["CUDA_VISIBLE_DEVICES"] =args.GPUs 
 
-    args.model_name = '%dx%d_%s_%s_stage_%s' %(args.image_size, args.image_size, args.backbone, args.head, args.stage)
+    args.model_name = '%dx%d_%s_%s_stage_%s_aux_%s' %(args.image_size, args.image_size, args.backbone, args.head, args.stage, args.aux)
     args.nclasses = 21
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  ##判断是否有gpu
 
