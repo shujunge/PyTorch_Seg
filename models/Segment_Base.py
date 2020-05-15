@@ -3,6 +3,7 @@ from backbone.resnetv1b import resnet50_v1b, resnet101_v1b, resnet152_v1b
 from backbone.ResNest.resnest import resnest50, resnest101
 from backbone.resnet import resnet101, resnet50
 from backbone.EfficientNet import EfficientNet_B4
+from backbone.CBNet import CBNet
 import torch
 import torch.nn as nn
 
@@ -46,6 +47,8 @@ class SegBaseModel(nn.Module):
             self.pretrained = eval(backbone)(in_channels=3, pretrained_model=models_name[backbone], **kwargs) #
         elif backbone in ['resnest50', 'resnest101']:
             self.pretrained = eval(backbone)(pretrained=pretrained_base, **kwargs)
+        elif backbone in ['CBNet']:
+            self.pretrained = eval(backbone)(pretrained_base=pretrained_base, **kwargs)
         else:
             raise RuntimeError('unknown backbone: {}'.format(backbone))
 
@@ -56,6 +59,9 @@ class SegBaseModel(nn.Module):
 
         if self.backbone == "EfficientNet_B4":
             _, c1, c2, c3, c4 = self.pretrained(x)
+            return c1, c2, c3, c4
+        elif self.backbone == "CBNet":
+            c1, c2, c3, c4 = self.pretrained(x)
             return c1, c2, c3, c4
         else:
             x = self.pretrained.conv1(x)

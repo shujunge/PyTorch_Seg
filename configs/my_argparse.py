@@ -16,7 +16,7 @@ def my_argparse():
         default="resnet101",
         choices=['resnet50','resnet50_v1b',
                  'resnet101',  'resnet101_v1b','resnet152_v1b',
-                 'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
+                 'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121','CBNet'],
         help="config the backbone of model \n Segment_base in ['resnet50','resnet50_v1b',\
              'resnet101',  'resnet101_v1b','resnet152_v1b', 'EfficientNet_B4','resnest50','resnest101']",
         type=str,
