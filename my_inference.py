@@ -5,6 +5,17 @@ import os
 import torch
 import torch.backends.cudnn as cudnn
 
+from models.deeplabv3 import DeepLabV3
+from models.unet import UNet
+from models.bisenet import BiSeNet
+from models.OCNet import OCNet
+from models.ICNet import ICNet
+from models.PSPNet import PSPNet
+from models.danet import DANet
+from models.dunet import DUNet
+from models.encnet import EncNet
+from models.DenseASPP import DenseASPP
+
 import torch.nn as nn
 from utils.my_trainer import evalute
 from configs.my_argparse import my_argparse
