@@ -4,7 +4,8 @@ Implementation of paradigm described in paper: Designing Network Design Spaces p
 """
 import numpy as np
 from backbone.RegNet.anynet import AnyNetXe
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 
 class RegNetX(AnyNetXe):
     def __init__(self, initial_width, slope, quantized_param, network_depth, bottleneck_ratio, group_width, stride,

@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from backbone.densenet import dilated_densenet121, dilated_densenet161, dilated_densenet169, dilated_densenet201
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 
 __all__ = ['DenseASPP']
 

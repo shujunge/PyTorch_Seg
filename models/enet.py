@@ -1,7 +1,8 @@
 """Efficient Neural Network"""
 import torch
 import torch.nn as nn
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 __all__ = ['ENet']
 
 

@@ -7,6 +7,8 @@ import torch.nn.functional as F
 from backbone.resnet import resnet50, resnet34,resnet18,resnet101
 from backbone.EfficientNet import EfficientNet_B4
 from backbone.vgg import vgg16
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
