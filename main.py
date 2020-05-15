@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     os.environ["CUDA_VISIBLE_DEVICES"] =args.GPUs 
 
-    cfgs.model_name = '%dx%d_%s_%s_stage_%s' %(cfgs.TRAIN.image_size, cfgs.TRAIN.image_size, cfgs.MODEL.backbone, cfgs.MODEL.head, cfgs.MODEL.stage)
+    cfgs.model_name = '%dx%d_%s_%s_stage_%s' %(cfgs.DATASET.image_size, cfgs.DATASET.image_size, cfgs.MODEL.backbone, cfgs.MODEL.head, cfgs.MODEL.stage)
     # cfgs.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  ##判断是否有gpu
 
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         transforms.Normalize([.485, .456, .406], [.229, .224, .225]),
     ])
     # dataset and dataloader
-    data_kwargs = {'transform': input_transform, 'base_size': 520, 'crop_size': cfgs.TRAIN.image_size ,'root': cfgs.DATASET.dataset_path} #
+    data_kwargs = {'transform': input_transform, 'base_size': 520, 'crop_size': cfgs.DATASET.image_size ,'root': cfgs.DATASET.dataset_path} #
     train_data = VOCSegmentation(split='train', mode='train', **data_kwargs)
     val_data = VOCSegmentation(split='val', mode='val', **data_kwargs)
     iters_per_epoch = len(train_data) // (cfgs.TRAIN.batch_size)
