@@ -39,7 +39,7 @@ class ICNet(SegBaseModel):
         x_sub4 = self.ppm(x_sub4)
         outputs = self.head(x_sub1, x_sub2, x_sub4)
 
-        return outputs #tuple(outputs)
+        return tuple(outputs)
 
 
 class PyramidPoolingModule(nn.Module):

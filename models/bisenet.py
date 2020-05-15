@@ -43,19 +43,19 @@ class BiSeNet(nn.Module):
         spatial_out = self.spatial_path(x)
         context_out = self.context_path(x)
         fusion_out = self.ffm(spatial_out, context_out[-1])
-        # outputs = []
+        outputs = []
         x = self.head(fusion_out)
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        # outputs.append(x)
+        outputs.append(x)
 
-        # if self.aux:
-        #     auxout1 = self.auxlayer1(context_out[0])
-        #     auxout1 = F.interpolate(auxout1, size, mode='bilinear', align_corners=True)
-        #     outputs.append(auxout1)
-        #     auxout2 = self.auxlayer2(context_out[1])
-        #     auxout2 = F.interpolate(auxout2, size, mode='bilinear', align_corners=True)
-        #     outputs.append(auxout2)
-        return x #tuple(outputs)
+        if self.aux:
+            auxout1 = self.auxlayer1(context_out[0])
+            auxout1 = F.interpolate(auxout1, size, mode='bilinear', align_corners=True)
+            outputs.append(auxout1)
+            auxout2 = self.auxlayer2(context_out[1])
+            auxout2 = F.interpolate(auxout2, size, mode='bilinear', align_corners=True)
+            outputs.append(auxout2)
+        return tuple(outputs)
 
 
 class _BiSeHead(nn.Module):

@@ -42,16 +42,16 @@ class PSPNet(SegBaseModel):
     def forward(self, x):
         size = x.size()[2:]
         c1, c2, c3, c4 = self.base_forward(x)
-        # outputs = []
+        outputs = []
         x = self.head(eval(self.stage))
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        # outputs.append(x)
+        outputs.append(x)
 
         # if self.aux:
         #     auxout = self.auxlayer(c3)
         #     auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
         #     outputs.append(auxout)
-        return x #tuple(outputs)
+        return tuple(outputs)
 
 
 def _PSP1x1Conv(in_channels, out_channels, norm_layer, norm_kwargs):
