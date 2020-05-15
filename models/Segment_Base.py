@@ -4,6 +4,8 @@ from backbone.resnet import resnet101, resnet50
 from backbone.EfficientNet import EfficientNet_B4
 import torch
 import torch.nn as nn
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 
 model_params = {}
 c3_model_params = {'resnet101': 2048, 'resnet50': 2048,

@@ -6,7 +6,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.utils import model_zoo
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 ########################################################################
 ############### HELPERS FUNCTIONS FOR MODEL ARCHITECTURE ###############
 ########################################################################

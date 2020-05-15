@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 __all__ = ['ResNetV1b', 'resnet18_v1b', 'resnet34_v1b', 'resnet50_v1b',
            'resnet101_v1b', 'resnet152_v1b', 'resnet152_v1s', 'resnet101_v1s', 'resnet50_v1s']
 

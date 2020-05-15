@@ -2,7 +2,8 @@ import torch
 import functools
 import torch.nn as nn
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
