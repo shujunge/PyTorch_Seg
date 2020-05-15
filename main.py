@@ -54,8 +54,6 @@ if __name__ == "__main__":
     args.nclasses = 21
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  ##判断是否有gpu
 
-    if torch.cuda.is_available():
-        cudnn.benchmark = True
 
 
     args.save_weight_path = "./weights/%s.pt" % args.model_name
