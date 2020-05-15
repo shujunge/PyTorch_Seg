@@ -27,9 +27,27 @@ import torch.nn as nn
 import pandas as pd
 from utils.my_lr import WarmupPolyLR
 from utils.my_trainer import training_loop
-from utils.my_argparse import my_argparse
+from utils.my_argparse import my_argparse,load_config
 from utils.loss import MixSoftmaxCrossEntropyLoss,ICNetLoss, EncNetLoss
 from utils.score import SegmentationMetric
+import random
+import numpy as np
+
+
+if torch.cuda.is_available():
+    cudnn.benchmark = True
+
+def seed_everything(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.enabled = True
+
+seed_everything(2020)
 
 if __name__ == "__main__":
 
@@ -42,8 +60,11 @@ if __name__ == "__main__":
         os.makedirs(result_path)
 
     # hyper-parameter
-    args = my_argparse()
 
+    args = my_argparse()
+    cfg = load_config(args)
+    print(cfg)
+    exit()
     os.environ["CUDA_VISIBLE_DEVICES"] =args.GPUs 
 
     args.model_name = '%dx%d_%s_%s_stage_%s' %(args.image_size, args.image_size, args.backbone, args.head, args.stage)
