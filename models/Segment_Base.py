@@ -1,5 +1,5 @@
 from utils.my_seed import  seed_everything
-from backbone.resnetv1b import resnet50_v1s, resnet101_v1s, resnet152_v1s
+from backbone.resnetv1b import resnet50_v1b, resnet101_v1b, resnet152_v1b
 from backbone.ResNest.resnest import resnest50, resnest101
 from backbone.resnet import resnet101, resnet50
 from backbone.EfficientNet import EfficientNet_B4
@@ -8,11 +8,11 @@ import torch.nn as nn
 
 
 model_params = {}
-c3_model_params = {'resnet101': 2048, 'resnet50': 2048,
-                   'resnet101_v1s': 2048, 'resnet50_v1s': 2048,
+c3_model_params = {'resnet101': 1024, 'resnet50': 1024,
+                   'resnet101_v1b': 1024, 'resnet50_v1b': 1024,
                    'EfficientNet_B4': 160, 'resnest50': 1024, 'resnest101': 1024}
 c4_model_params = {'resnet101': 2048, 'resnet50': 2048,
-                   'resnet101_v1s': 2048, 'resnet50_v1s': 2048,
+                   'resnet101_v1b': 2048, 'resnet50_v1b': 2048,
                    'EfficientNet_B4': 1792, 'resnest50': 2048, 'resnest101': 2048}
 model_params['c3'] = c3_model_params
 model_params['c4'] = c4_model_params
@@ -40,7 +40,7 @@ class SegBaseModel(nn.Module):
         # models['xception39'] = "/home/zfw/.torch/models/xception-43020ad28.pth"
         models_name['EfficientNet_B4'] = "/home/zfw/.torch/models/efficientnet-b4-6ed6700e.pth"
 
-        if backbone in[ 'resnet50_v1s','resnet101_v1s', 'resnet152_v1s']:
+        if backbone in[ 'resnet50_v1b','resnet101_v1b', 'resnet152_v1b']:
             self.pretrained = eval(backbone)(pretrained=pretrained_base, dilated=dilated, **kwargs)
         elif backbone in list(models_name.keys()):
             self.pretrained = eval(backbone)(in_channels=3, pretrained_model=models_name[backbone], **kwargs) #
