@@ -1,0 +1,25 @@
+TRAIN:
+  batch_size: 28
+  lr: 1e-4
+  weight_path: '../'
+  image_size: 352
+  epochs: 100
+  earying_step: 15
+MODEL:
+  head: 'DeepLabV3'
+  backbone: 'resnest101' #['resnet50','resnet50_v1s','resnet101',  'resnet101_v1s','resnet152_v1s','EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121']
+  stage: 'c3'
+DATASET:
+  name: 'VOC2012'
+  nclasses: 21
+  dataset_path: "/home/zfw/VOCdevkit"
+
+
+
+
+
+
+
+
+
+

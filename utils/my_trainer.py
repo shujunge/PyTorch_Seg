@@ -11,24 +11,24 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
 
-def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataloader, val_dataloader):
+def training_loop(cfgs, optimizers, lr_scheduler, model, loss_fn, trian_dataloader, val_dataloader):
 
     min_loss = 1e2
     train_history = []
     count = 0
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(1, cfgs.TRAIN.epochs + 1):
 
         torch.cuda.empty_cache()
         model.train()
         train_loss=[]
         train_bar = tqdm(enumerate(trian_dataloader))
-        args.train_metric.reset()
+        cfgs.train_metric.reset()
         for index, (image, label) in train_bar:
 
             lr_scheduler.step()
-            image = image.float().to(args.device)
-            label = label.long().to(args.device)
-            model = model.to(args.device)
+            image = image.float().to(cfgs.device)
+            label = label.long().to(cfgs.device)
+            model = model.to(cfgs.device)
             train_preds = model(image)
 
             loss_values = loss_fn(train_preds, label)#.to(args.device) 
@@ -36,51 +36,51 @@ def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataload
             train_loss. append(loss_train.item())
             y_train = label.clone()
             y_preds = train_preds.clone()
-            args.train_metric.update(y_preds,y_train)
+            cfgs.train_metric.update(y_preds,y_train)
             optimizers.zero_grad()
             loss_train.backward()
             optimizers.step()
             train_bar.set_description("Lr:{:.6f},Loss:{:.4f}".format(optimizers.param_groups[0]['lr'], np.mean(train_loss)))
 
-        train_pixacc, train_IoU = args.train_metric.get()
+        train_pixacc, train_IoU = cfgs.train_metric.get()
 
         torch.cuda.empty_cache()
         model.eval()
         val_loss = []
-        args.val_metric.reset()
+        cfgs.val_metric.reset()
         with torch.no_grad():
             for index, (image, label) in tqdm(enumerate(val_dataloader)):
-                image = image.float().to(args.device)
-                label = label.long().to(args.device)
-                model = model.to(args.device)
+                image = image.float().to(cfgs.device)
+                label = label.long().to(cfgs.device)
+                model = model.to(cfgs.device)
 
                 val_preds = model(image)
 
                 loss_values = loss_fn(val_preds, label)#.to(args.device) 
                 loss_val = sum(loss for loss in loss_values.values())
                 val_loss.append(loss_val.item())
-                args.val_metric.update(val_preds, label)
-        val_pixacc, val_iou = args.val_metric.get()
+                cfgs.val_metric.update(val_preds, label)
+        val_pixacc, val_iou = cfgs.val_metric.get()
         print("epoch:{:d}/{:d}, Lr:{:.6f},train_Loss:{:.4f},train_pixacc:{:.4f}, train_miou:{:.4f},\
               val_loss:{:.4f},val_pixacc:{:.4f}, val_miou:{:.4f}\n".
-              format(epoch, args.epochs, optimizers.param_groups[0]['lr'],
+              format(epoch, cfgs.TRAIN.epochs, optimizers.param_groups[0]['lr'],
                      np.mean(train_loss), train_pixacc, train_IoU,
                      np.mean(val_loss), val_pixacc , val_iou))
         count += 1
         if np.mean(val_loss) < min_loss:
             count = 0
             min_loss  = np.mean(val_loss)
-            torch.save(model.module.state_dict(), args.save_weight_path)
+            torch.save(model.module.state_dict(), cfgs.save_weight_path)
         train_history.append([optimizers.param_groups[0]['lr'],  np.mean(train_loss), train_pixacc, train_IoU,
                      np.mean(val_loss), val_pixacc , val_iou])
         x = pd.DataFrame(train_history)
         x.columns= ['lr', 'train_loss', 'train_pixacc','train_miou', 'val_loss', 'val_pixacc','val_miou']
-        x.to_csv(args.save_tranining_path, index=False)
-        if count > args.earying_step:
+        x.to_csv(cfgs.save_tranining_path, index=False)
+        if count > cfgs.TRAIN.earying_step:
             break
 
 
-def evalute(args, model, loss_fn, val_dataloader):
+def evalute(cfgs, model, loss_fn, val_dataloader):
 
     torch.cuda.empty_cache()
     model.eval()
@@ -89,9 +89,9 @@ def evalute(args, model, loss_fn, val_dataloader):
     with torch.no_grad():
         for index, (image,label) in tqdm(enumerate(val_dataloader)):
 
-            image = image.float().to(args.device)
-            label = label.long().to(args.device)
-            model = model.to(args.device)
+            image = image.float().to(cfgs.device)
+            label = label.long().to(cfgs.device)
+            model = model.to(cfgs.device)
             val_preds = model(image)
             loss_values = loss_fn(val_preds, label)
             loss_val = sum(loss for loss in loss_values.values())
