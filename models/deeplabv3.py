@@ -39,7 +39,7 @@ class DeepLabV3(SegBaseModel):
         self.aux  = aux
         self.aspp = ASPP(in_channels=model_params[self.stage][backbone], num_classes=nclass)
         if self.aux:
-            self.auxlayer = _FCNHead(model_params[self.stage][backbone], nclass, **kwargs)
+            self.auxlayer = _FCNHead(model_params['c3'][backbone], nclass, **kwargs)
 
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
 
