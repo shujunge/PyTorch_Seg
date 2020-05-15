@@ -2,7 +2,6 @@ TRAIN:
   batch_size: 28
   lr: 1e-4
   weight_path: '../'
-  image_size: 352
   epochs: 100
   earying_step: 15
 MODEL:
@@ -13,6 +12,7 @@ DATASET:
   name: 'VOC2012'
   nclasses: 21
   dataset_path: "/home/zfw/VOCdevkit"
+  image_size: 352
 
 
 

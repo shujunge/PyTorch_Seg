@@ -20,8 +20,6 @@ _C.TRAIN.lr = 1e-4
 
 _C.TRAIN.weight_path = './'
 
-_C.TRAIN.image_size = 352
-
 _C.TRAIN.epochs = 100
 
 _C.TRAIN.earying_step = 15
@@ -47,6 +45,7 @@ _C.DATASET.dataset_path = "/home/zfw/VOCdevkit"
 
 _C.DATASET.nclasses = 21
 
+_C.DATASET.image_size = 352
 
 
 def get_cfg():

@@ -26,9 +26,9 @@ def training_loop(cfgs, optimizers, lr_scheduler, model, loss_fn, trian_dataload
         for index, (image, label) in train_bar:
 
             lr_scheduler.step()
-            image = image.float().to(cfgs.device)
-            label = label.long().to(cfgs.device)
-            model = model.to(cfgs.device)
+            image = image.float().cuda()
+            label = label.long().cuda()
+            model = model.cuda()
             train_preds = model(image)
 
             loss_values = loss_fn(train_preds, label)#.to(args.device) 
@@ -50,9 +50,9 @@ def training_loop(cfgs, optimizers, lr_scheduler, model, loss_fn, trian_dataload
         cfgs.val_metric.reset()
         with torch.no_grad():
             for index, (image, label) in tqdm(enumerate(val_dataloader)):
-                image = image.float().to(cfgs.device)
-                label = label.long().to(cfgs.device)
-                model = model.to(cfgs.device)
+                image = image.float().cuda()
+                label = label.long().cuda()
+                model = model.cuda()
 
                 val_preds = model(image)
 
@@ -89,9 +89,9 @@ def evalute(cfgs, model, loss_fn, val_dataloader):
     with torch.no_grad():
         for index, (image,label) in tqdm(enumerate(val_dataloader)):
 
-            image = image.float().to(cfgs.device)
-            label = label.long().to(cfgs.device)
-            model = model.to(cfgs.device)
+            image = image.float().cuda()
+            label = label.long().cuda()
+            model = model.cuda()
             val_preds = model(image)
             loss_values = loss_fn(val_preds, label)
             loss_val = sum(loss for loss in loss_values.values())
