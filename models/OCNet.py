@@ -1,10 +1,10 @@
 """ Object Context Network for Scene Parsing"""
+from utils.my_seed import  seed_everything
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from models.Segment_Base import SegBaseModel,model_params
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 class OCNet(SegBaseModel):
     r"""OCNet

@@ -1,11 +1,12 @@
 """Decoders Matter for Semantic Segmentation"""
+from utils.my_seed import  seed_everything
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from models.Segment_Base import SegBaseModel
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 __all__ = ['DUNet']
 

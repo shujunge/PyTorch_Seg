@@ -6,11 +6,10 @@
 ## LICENSE file in the root directory of this source tree 
 ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 """ResNeSt ablation study models"""
-
+from utils.my_seed import  seed_everything
 import torch
 from backbone.ResNest.resnet import ResNet, Bottleneck
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 __all__ = ['resnest50_fast_1s1x64d', 'resnest50_fast_2s1x64d', 'resnest50_fast_4s1x64d',
            'resnest50_fast_1s2x40d', 'resnest50_fast_2s2x40d', 'resnest50_fast_4s2x40d',

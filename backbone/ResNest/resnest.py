@@ -6,11 +6,10 @@
 ## LICENSE file in the root directory of this source tree 
 ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 """ResNeSt models"""
-
+from utils.my_seed import  seed_everything
 import torch
 from backbone.ResNest.resnet import ResNet, Bottleneck
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 __all__ = ['resnest50', 'resnest101', 'resnest200', 'resnest269']
 

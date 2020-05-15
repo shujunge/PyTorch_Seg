@@ -1,3 +1,4 @@
+from utils.my_seed import  seed_everything
 from tqdm import tqdm
 from collections import deque
 import numpy as np
@@ -8,8 +9,7 @@ from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataloader, val_dataloader):
 

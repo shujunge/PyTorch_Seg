@@ -2,12 +2,12 @@
 @author: Signatrix GmbH
 Implementation of paradigm described in paper: Designing Network Design Spaces published by Facebook AI Research (FAIR)
 """
+from utils.my_seed import  seed_everything
 import torch.nn as nn
 from backbone.RegNet.modules import Stem, Stage, Head
 from backbone.RegNet.config import NUM_CLASSES
 from math import sqrt
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 class AnyNetX(nn.Module):
     def __init__(self, ls_num_blocks, ls_block_width, ls_bottleneck_ratio, ls_group_width, stride, se_ratio):

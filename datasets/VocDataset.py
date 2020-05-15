@@ -1,4 +1,6 @@
 """Base segmentation dataset Pascal VOC Semantic Segmentation Dataset."""
+from utils.my_seed import  seed_everything
+
 import os
 import torch
 import random
@@ -8,8 +10,7 @@ from torch.utils.data.sampler import Sampler, BatchSampler
 import torch.distributed as dist
 import math
 from torch.utils import data
-from utils.my_seed import  seed_everything
-seed_everything(2020)
+
 
 class SegmentationDataset(object):
     """Segmentation Base Dataset"""

@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     if torch.cuda.is_available():
         cudnn.benchmark = True
-    seed_everything(2020)
+
 
     args.save_weight_path = "./weights/%s.pt" % args.model_name
     args.save_tranining_path = "./results/%s.csv" % args.model_name

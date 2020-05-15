@@ -1,3 +1,5 @@
+from utils.my_seed import  seed_everything
+
 import torch.nn as nn
 import torch
 import numpy as np
