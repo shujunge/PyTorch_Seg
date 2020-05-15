@@ -1,10 +1,9 @@
 import warnings
 warnings.filterwarnings('ignore')
 import os
-#os.environ["CUDA_VISIBLE_DEVICES"] ="8,9"
+from utils.my_seed import  seed_everything
 import torch
 import torch.backends.cudnn as cudnn
-from torch.utils.data import DataLoader
 
 from torchvision import transforms
 from torch.utils import data
@@ -33,16 +32,6 @@ from utils.score import SegmentationMetric
 import random
 import numpy as np
 
-
-def seed_everything(seed):
-    random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = True
-    torch.backends.cudnn.enabled = True
 
 
 

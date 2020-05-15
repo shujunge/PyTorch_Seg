@@ -4,7 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from backbone.ResNest.resnest import resnest50, resnest101
 from backbone.resnet import resnet50,resnet101
-
+from utils.my_seed import  seed_everything
+seed_everything(2020)
 
 
 class _ConvBNReLU(nn.Module):
