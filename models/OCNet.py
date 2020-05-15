@@ -1,8 +1,10 @@
 """ Object Context Network for Scene Parsing"""
+from utils.my_seed import  seed_everything
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.Segment_Base import SegBaseModel
+from models.Segment_Base import SegBaseModel,model_params
+
 
 class OCNet(SegBaseModel):
     r"""OCNet
@@ -24,44 +26,46 @@ class OCNet(SegBaseModel):
         arXiv preprint arXiv:1809.00916 (2018).
     """
 
-    def __init__(self, nclass, backbone='resnet101', oc_arch='base', aux=False, pretrained_base=True, **kwargs):
+    def __init__(self, nclass, backbone='resnet101', stage='c3',oc_arch='base', aux=False, pretrained_base=True, **kwargs):
         super(OCNet, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
-        self.head = _OCHead(nclass, oc_arch, **kwargs)
+
+        self.stage = stage
+        self.head = _OCHead(nclass, oc_arch,in_channels= model_params[self.stage][backbone], **kwargs)
 
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
 
     def forward(self, x):
         size = x.size()[2:]
-        _, _, c3, c4 = self.base_forward(x)
-
-        x = self.head(c4)
+        c1, c2, c3, c4 = self.base_forward(x)
+        outputs = []
+        x = self.head(eval(self.stage))
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        # outputs.append(x)
+        outputs.append(x)
 
         # if self.aux:
         #     auxout = self.auxlayer(c3)
         #     auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
         #     outputs.append(auxout)
-        return x #tuple(outputs)
+        return tuple(outputs)
 
 
 class _OCHead(nn.Module):
-    def __init__(self, nclass, oc_arch, norm_layer=nn.BatchNorm2d, **kwargs):
+    def __init__(self, nclass, oc_arch, in_channels, norm_layer=nn.BatchNorm2d, **kwargs):
         super(_OCHead, self).__init__()
         if oc_arch == 'base':
             self.context = nn.Sequential(
-                nn.Conv2d(2048, 512, 3, 1, padding=1, bias=False),
+                nn.Conv2d(in_channels, 512, 3, 1, padding=1, bias=False),
                 norm_layer(512),
                 nn.ReLU(True),
                 BaseOCModule(512, 512, 256, 256, scales=([1]), norm_layer=norm_layer, **kwargs))
         elif oc_arch == 'pyramid':
             self.context = nn.Sequential(
-                nn.Conv2d(2048, 512, 3, 1, padding=1, bias=False),
+                nn.Conv2d(in_channels, 512, 3, 1, padding=1, bias=False),
                 norm_layer(512),
                 nn.ReLU(True),
                 PyramidOCModule(512, 512, 256, 512, scales=([1, 2, 3, 6]), norm_layer=norm_layer, **kwargs))
         elif oc_arch == 'asp':
-            self.context = ASPOCModule(2048, 512, 256, 512, norm_layer=norm_layer, **kwargs)
+            self.context = ASPOCModule(in_channels, 512, 256, 512, norm_layer=norm_layer, **kwargs)
         else:
             raise ValueError("Unknown OC architecture!")
 
@@ -302,7 +306,7 @@ class ASPOCModule(nn.Module):
 
 if __name__ == '__main__':
     img = torch.randn(2, 3, 256, 256)
-    model = OCNet(nclass=19, backbone='resnest101', oc_arch='pyramid',
+    model = OCNet(nclass=19, backbone='resnest101', oc_arch='pyramid',stage='c4',
                   pretrained_base=False)
     outputs = model(img)
     print(outputs.size())

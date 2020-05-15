@@ -4,21 +4,25 @@ import os
 
 import torch
 import torch.backends.cudnn as cudnn
-from torch.utils.data import DataLoader
-from datasets.pascal_voc2012 import ImageData
-from datasets.my_transform_PIL import train_torchvision_transforms, inference_torchvision_transforms
-from models.deeplabv3_base import DeepLabV3
+
+from models.deeplabv3 import DeepLabV3
 from models.unet import UNet
+from models.bisenet import BiSeNet
+from models.OCNet import OCNet
+from models.ICNet import ICNet
+from models.PSPNet import PSPNet
+from models.danet import DANet
+from models.dunet import DUNet
+from models.encnet import EncNet
+from models.DenseASPP import DenseASPP
+
 import torch.nn as nn
-import pandas as pd
-from utils.my_loss import CrossEntropyLoss2d, DiceLoss
-from utils.my_lr import WarmupPolyLR
-from utils.my_trainer import training_loop,evalute
-from utils.my_argparse import my_argparse
+from utils.my_trainer import evalute
+from configs.my_argparse import my_argparse
 from datasets.VocDataset import VOCSegmentation, make_batch_data_sampler, make_data_sampler
 from torchvision import transforms
 from torch.utils import data
-from utils.loss import MixSoftmaxCrossEntropyLoss,ICNetLoss,EncNetLoss
+from utils.loss import MixSoftmaxCrossEntropyLoss, EncNetLoss
 
 
 if __name__ == "__main__":
@@ -43,18 +47,20 @@ if __name__ == "__main__":
 
     print(args)
 
-    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True },
-                    'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'backbone': args.backbone,'pretrained_base': True},
-                    'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'PSPNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DANet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
-                    'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
-                             'pretrained_base': True, 'usehypercolumns': False},
-                    }
+    Model_Params = {
+        'DeepLabV3': {'nclass': args.nclasses, 'stage': args.stage, 'backbone': args.backbone, 'pretrained_base': True},
+        'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'stage': args.stage, 'backbone': args.backbone,
+                  'pretrained_base': True},
+        'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'DenseASPP': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'PSPNet': {'nclass': args.nclasses, 'stage': args.stage, 'backbone': args.backbone, 'pretrained_base': True},
+        'DANet': {'nclass': args.nclasses, 'stage': args.stage, 'backbone': args.backbone, 'pretrained_base': True},
+        'DUNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'EncNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
+        'UNet': {'in_channels': 3, 'n_classes': args.nclasses, 'bilinear': True, 'backbone': args.backbone,
+                 'pretrained_base': True, 'usehypercolumns': False},
+        }
 
 
     input_transform = transforms.Compose([

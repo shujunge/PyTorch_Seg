@@ -1,8 +1,21 @@
-from backbone.resnetv1b import resnet50_v1s, resnet101_v1s, resnet152_v1s
+from utils.my_seed import  seed_everything
+from backbone.resnetv1b import resnet50_v1b, resnet101_v1b, resnet152_v1b
 from backbone.ResNest.resnest import resnest50, resnest101
+from backbone.resnet import resnet101, resnet50
+from backbone.EfficientNet import EfficientNet_B4
 import torch
 import torch.nn as nn
 
+
+model_params = {}
+c3_model_params = {'resnet101': 1024, 'resnet50': 1024,
+                   'resnet101_v1b': 1024, 'resnet50_v1b': 1024,
+                   'EfficientNet_B4': 160, 'resnest50': 1024, 'resnest101': 1024}
+c4_model_params = {'resnet101': 2048, 'resnet50': 2048,
+                   'resnet101_v1b': 2048, 'resnet50_v1b': 2048,
+                   'EfficientNet_B4': 1792, 'resnest50': 2048, 'resnest101': 2048}
+model_params['c3'] = c3_model_params
+model_params['c4'] = c4_model_params
 
 class SegBaseModel(nn.Module):
     r"""Base Model for Semantic Segmentation
@@ -19,12 +32,18 @@ class SegBaseModel(nn.Module):
         dilated =  True
         self.aux = aux
         self.nclass = nclass
-        if backbone == 'resnet50':
-            self.pretrained = resnet50_v1s(pretrained=pretrained_base, dilated=dilated, **kwargs)
-        elif backbone == 'resnet101':
-            self.pretrained = resnet101_v1s(pretrained=pretrained_base, dilated=dilated, **kwargs)
-        elif backbone == 'resnet152':
-            self.pretrained = resnet152_v1s(pretrained=pretrained_base, dilated=dilated, **kwargs)
+        self.backbone = backbone
+
+        models_name = {}
+        models_name['resnet50'] = "/home/zfw/.torch/models/resnet50-19c8e357.pth"
+        models_name['resnet101'] = "/home/zfw/.torch/models/resnet101-5d3b4d8f.pth"
+        # models['xception39'] = "/home/zfw/.torch/models/xception-43020ad28.pth"
+        models_name['EfficientNet_B4'] = "/home/zfw/.torch/models/efficientnet-b4-6ed6700e.pth"
+
+        if backbone in[ 'resnet50_v1b','resnet101_v1b', 'resnet152_v1b']:
+            self.pretrained = eval(backbone)(pretrained=pretrained_base, dilated=dilated, **kwargs)
+        elif backbone in list(models_name.keys()):
+            self.pretrained = eval(backbone)(in_channels=3, pretrained_model=models_name[backbone], **kwargs) #
         elif backbone in ['resnest50', 'resnest101']:
             self.pretrained = eval(backbone)(pretrained=pretrained_base, **kwargs)
         else:
@@ -34,77 +53,21 @@ class SegBaseModel(nn.Module):
 
     def base_forward(self, x):
         """forwarding pre-trained network"""
-        x = self.pretrained.conv1(x)
-        x = self.pretrained.bn1(x)
-        x = self.pretrained.relu(x)
-        x = self.pretrained.maxpool(x)
-        c1 = self.pretrained.layer1(x)
-        c2 = self.pretrained.layer2(c1)
-        c3 = self.pretrained.layer3(c2)
-        c4 = self.pretrained.layer4(c3)
 
-        return c1, c2, c3, c4
-
-    def evaluate(self, x):
-        """evaluating network with inputs and targets"""
-        return self.forward(x)[0]
-
-    def demo(self, x):
-        pred = self.forward(x)
-        if self.aux:
-            pred = pred[0]
-        return pred
-
-
-class SegBaseModel_v1(nn.Module):
-    r"""Base Model for Semantic Segmentation
-
-    Parameters
-    ----------
-    backbone : string
-        Pre-trained dilated backbone network type (default:'resnet50'; 'resnet50',
-        'resnet101' or 'resnet152').
-    """
-
-    def __init__(self, nclass, in_channels, aux, backbone='resnet50', pretrained_base = True, **kwargs):
-        super(SegBaseModel_v1, self).__init__()
-
-        self.aux = aux
-        self.nclass = nclass
-        self.backbone = backbone
-        self.in_channels  = in_channels
-        models={}
-        models['resnet18'] = "/home/zfw/.torch/models/resnet18-5c106cde.pth"
-        models['resnet34'] = "/home/zfw/.torch/models/resnet34-333f7ec4.pth"
-        models['resnet50'] = "/home/zfw/.torch/models/resnet50-19c8e357.pth"
-        models['resnet101'] = "/home/zfw/.torch/models/resnet101-5d3b4d8f.pth"
-        models['vgg16'] = "/home/zfw/.torch/models/vgg16-00b39a1b.pth"
-        models['xception39'] = "/home/zfw/.torch/models/xception-43020ad28.pth"
-        models['EfficientNet_B4']="/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth"
-        if pretrained_base:
-            self.pretrained = eval(backbone)(in_channels=self.in_channels, pretrained_model=models[backbone], **kwargs)
+        if self.backbone == "EfficientNet_B4":
+            _, c1, c2, c3, c4 = self.pretrained(x)
+            return c1, c2, c3, c4
         else:
-            self.pretrained = eval(backbone)(in_channels=self.in_channels, pretrained_model=None, **kwargs)
-
-
-    def base_forward(self, x):
-        """forwarding pre-trained network"""
-        if self.backbone[:6]=="resnet":
             x = self.pretrained.conv1(x)
             x = self.pretrained.bn1(x)
             x = self.pretrained.relu(x)
-            x = self.pretrained.maxpool(x)#[bn, 64, 120, 120]
-            c1 = self.pretrained.layer1(x) #[bn, 256, 120, 120]
-            c2 = self.pretrained.layer2(c1)#[bn, 512, 60, 60]
-            c3 = self.pretrained.layer3(c2)#[bn, 1024, 30, 30]
-            c4 = self.pretrained.layer4(c3) #[bn, 2048, 15, 15]
+            x = self.pretrained.maxpool(x)
+            c1 = self.pretrained.layer1(x)
+            c2 = self.pretrained.layer2(c1)
+            c3 = self.pretrained.layer3(c2)
+            c4 = self.pretrained.layer4(c3)
+
             return c1, c2, c3, c4
-        elif self.backbone == "vgg16":
-            x = self.pretrained(x)
-            return x
-        else:
-            x = self.pretrained(x)
-            return x
 
     def evaluate(self, x):
         """evaluating network with inputs and targets"""
@@ -115,6 +78,7 @@ class SegBaseModel_v1(nn.Module):
         if self.aux:
             pred = pred[0]
         return pred
+
 
 class _ConvBNReLU(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0,
@@ -157,3 +121,18 @@ class _ConvBNPReLU(nn.Module):
         x = self.bn(x)
         x = self.prelu(x)
         return x
+
+class _FCNHead(nn.Module):
+    def __init__(self, in_channels, channels, norm_layer=nn.BatchNorm2d, **kwargs):
+        super(_FCNHead, self).__init__()
+        inter_channels = in_channels // 4
+        self.block = nn.Sequential(
+            nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False),
+            norm_layer(inter_channels),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.1),
+            nn.Conv2d(inter_channels, channels, 1)
+        )
+
+    def forward(self, x):
+        return self.block(x)

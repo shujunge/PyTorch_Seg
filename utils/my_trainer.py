@@ -1,3 +1,4 @@
+from utils.my_seed import  seed_everything
 from tqdm import tqdm
 from collections import deque
 import numpy as np
@@ -8,6 +9,7 @@ from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
+
 
 def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataloader, val_dataloader):
 
@@ -33,8 +35,8 @@ def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataload
             loss_train= sum(loss for loss in loss_values.values())
             train_loss. append(loss_train.item())
             y_train = label.clone()
-            y_preds = train_preds.clone()
-            args.train_metric.update(y_preds,y_train)
+            y_preds = train_preds#.clone()
+            args.train_metric.update(y_preds[0],y_train)
             optimizers.zero_grad()
             loss_train.backward()
             optimizers.step()
@@ -57,7 +59,7 @@ def training_loop(args, optimizers, lr_scheduler, model, loss_fn, trian_dataload
                 loss_values = loss_fn(val_preds, label)#.to(args.device) 
                 loss_val = sum(loss for loss in loss_values.values())
                 val_loss.append(loss_val.item())
-                args.val_metric.update(val_preds, label)
+                args.val_metric.update(val_preds[0], label)
         val_pixacc, val_iou = args.val_metric.get()
         print("epoch:{:d}/{:d}, Lr:{:.6f},train_Loss:{:.4f},train_pixacc:{:.4f}, train_miou:{:.4f},\
               val_loss:{:.4f},val_pixacc:{:.4f}, val_miou:{:.4f}\n".

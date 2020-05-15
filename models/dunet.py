@@ -1,4 +1,6 @@
 """Decoders Matter for Semantic Segmentation"""
+from utils.my_seed import  seed_everything
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,17 +32,17 @@ class DUNet(SegBaseModel):
     def forward(self, x):
         size = x.size()[2:]
         c1, c2, c3, c4 = self.base_forward(x)
-        # outputs = []
+        outputs = []
         x = self.head(c2, c3, c4)
         x = self.dupsample(x)
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        # outputs.append(x)
+        outputs.append(x)
         #
         # if self.aux:
         #     auxout = self.auxlayer(c3)
         #     auxout = self.aux_dupsample(auxout)
         #     outputs.append(auxout)
-        return x#tuple(outputs)
+        return tuple(outputs)
 
 
 class FeatureFused(nn.Module):

@@ -2,6 +2,7 @@
 @author: Signatrix GmbH
 Implementation of paradigm described in paper: Designing Network Design Spaces published by Facebook AI Research (FAIR)
 """
+from utils.my_seed import  seed_everything
 import torch.nn as nn
 
 

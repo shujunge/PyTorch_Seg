@@ -1,9 +1,12 @@
 """Custom losses."""
+from utils.my_seed import  seed_everything
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.autograd import Variable
+
+
 
 __all__ = ['MixSoftmaxCrossEntropyLoss', 'MixSoftmaxCrossEntropyOHEMLoss',
            'EncNetLoss', 'ICNetLoss', 'get_segmentation_loss']
@@ -26,8 +29,8 @@ class MixSoftmaxCrossEntropyLoss(nn.CrossEntropyLoss):
         return loss
 
     def forward(self, *inputs, **kwargs):
-        #preds, target = tuple(inputs)
-        #inputs = tuple(list(preds) + [target])
+        preds, target = tuple(inputs)
+        inputs = tuple(list(preds) + [target])
         if self.aux:
             return dict(loss=self._aux_forward(*inputs))
         else:

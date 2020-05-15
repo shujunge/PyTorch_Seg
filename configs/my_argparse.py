@@ -6,16 +6,19 @@ def my_argparse():
         description="PyTorch Semantic Segmentation for VOC2012."
     )
     parser.add_argument(
-        "--DATASET_PATH",
-        default="/home/zfw/VOCdevkit/VOC2012",
+        "--dataset_path",
+        default="/home/zfw/VOCdevkit",
         help="path to VCO2012 dataset ",
         type=str,
     )
     parser.add_argument(
         "--backbone",
         default="resnet101",
-        choices=['resnet50','resnet101',  'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
-        help="config the backbone of model",
+        choices=['resnet50','resnet50_v1b',
+                 'resnet101',  'resnet101_v1b','resnet152_v1b',
+                 'EfficientNet_B4','resnest50','resnest101','RegNet200', 'densenet121'],
+        help="config the backbone of model \n Segment_base in ['resnet50','resnet50_v1b',\
+             'resnet101',  'resnet101_v1b','resnet152_v1b', 'EfficientNet_B4','resnest50','resnest101']",
         type=str,
     )
 
@@ -27,10 +30,23 @@ def my_argparse():
         type=str
     )
     parser.add_argument(
+        "--stage",
+        default='c3',
+        choices=['c3', 'c4'],
+        help="the size of encoder features \n c3,c4 for [DeepLabV3,PSPNet,OCNet, DANet] ",
+        type=str
+    )
+    parser.add_argument(
         "--weight_path",
         default=None,
         help="config path of model weight",
         type=str
+    )
+    parser.add_argument(
+        "--aux",
+        default=False,
+        help="choice the aux path for model tranining",
+        type=bool
     )
 
     parser.add_argument(

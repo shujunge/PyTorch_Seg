@@ -6,11 +6,13 @@
 ## LICENSE file in the root directory of this source tree 
 ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 """ResNet variants"""
+from utils.my_seed import  seed_everything
 import math
 import torch
 import torch.nn as nn
 
 from backbone.ResNest.splat import SplAtConv2d
+
 
 __all__ = ['ResNet', 'Bottleneck']
 

@@ -1,4 +1,6 @@
 """Context Encoding for Semantic Segmentation"""
+from utils.my_seed import  seed_everything
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -27,7 +29,7 @@ class EncNet(SegBaseModel):
         #     auxout = self.auxlayer(features[2])
         #     auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
         #     x.append(auxout)
-        return x[0] #tuple(x)
+        return tuple(x)
 
 
 class _EncHead(nn.Module):

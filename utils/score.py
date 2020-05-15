@@ -1,6 +1,8 @@
 """Evaluation Metrics for Semantic Segmentation"""
+from utils.my_seed import  seed_everything
 import torch
 import numpy as np
+
 
 __all__ = ['SegmentationMetric', 'batch_pix_accuracy', 'batch_intersection_union',
            'pixelAccuracy', 'intersectionAndUnion', 'hist_info', 'compute_score']

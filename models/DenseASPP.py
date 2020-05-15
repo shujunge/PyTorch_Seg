@@ -1,3 +1,5 @@
+from utils.my_seed import  seed_everything
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,16 +39,16 @@ class DenseASPP(nn.Module):
         features = self.pretrained.features(x)
         if self.dilate_scale > 8:
             features = F.interpolate(features, scale_factor=2, mode='bilinear', align_corners=True)
-        # outputs = []
+        outputs = []
         x = self.head(features)
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
-        # outputs.append(x)
+        outputs.append(x)
         #
         # if self.aux:
         #     auxout = self.auxlayer(features)
         #     auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
         #     outputs.append(auxout)
-        return x #tuple(outputs)
+        return tuple(outputs)
 
 
 class _DenseASPPHead(nn.Module):

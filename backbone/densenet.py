@@ -1,3 +1,5 @@
+from utils.my_seed import  seed_everything
+
 import re
 import torch
 import torch.nn as nn
@@ -5,6 +7,7 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 
 from collections import OrderedDict
+
 
 __all__ = ['DenseNet', 'densenet121', 'densenet161', 'densenet169', 'densenet201',
            'dilated_densenet121', 'dilated_densenet161', 'dilated_densenet169', 'dilated_densenet201']

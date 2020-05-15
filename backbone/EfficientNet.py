@@ -1,3 +1,5 @@
+from utils.my_seed import  seed_everything
+
 import re
 import math
 import collections
@@ -562,9 +564,16 @@ def print_weight():
 
 if __name__ == '__main__':
     x = torch.randn(2,3,512,512)
-    model =  EfficientNet_B4(pretrained_model="/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth")
+    model =  EfficientNet_B4(in_channels=3, pretrained_model=False)#"/home/zf/.torch/models/efficientnet-b4-6ed6700e.pth")
     out = model(x)
     for index in out:
         print(index.size())
-    print_weight()
+    # print_weight()
+    """
+        torch.Size([2, 24, 256, 256])
+        torch.Size([2, 32, 128, 128])
+        torch.Size([2, 56, 64, 64])
+        torch.Size([2, 160, 32, 32])
+        torch.Size([2, 1792, 16, 16])
+    """
 
