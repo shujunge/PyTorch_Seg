@@ -3,6 +3,7 @@ from utils.my_seed import  seed_everything
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
+from backbone.model_store import get_resnet_file
 
 __all__ = ['ResNetV1b', 'resnet18_v1b', 'resnet34_v1b', 'resnet50_v1b',
            'resnet101_v1b', 'resnet152_v1b', 'resnet152_v1s', 'resnet101_v1s', 'resnet50_v1s']
@@ -237,7 +238,6 @@ def resnet152_v1b(pretrained=False, **kwargs):
 def resnet50_v1s(pretrained=False, root='~/.torch/models', **kwargs):
     model = ResNetV1b(BottleneckV1b, [3, 4, 6, 3], deep_stem=True, **kwargs)
     if pretrained:
-        from ..model_store import get_resnet_file
         model.load_state_dict(torch.load(get_resnet_file('resnet50', root=root)), strict=False)
     return model
 
@@ -245,7 +245,6 @@ def resnet50_v1s(pretrained=False, root='~/.torch/models', **kwargs):
 def resnet101_v1s(pretrained=False, root='~/.torch/models', **kwargs):
     model = ResNetV1b(BottleneckV1b, [3, 4, 23, 3], deep_stem=True, **kwargs)
     if pretrained:
-        from ..model_store import get_resnet_file
         model.load_state_dict(torch.load(get_resnet_file('resnet101', root=root)), strict=False)
     return model
 
@@ -253,7 +252,6 @@ def resnet101_v1s(pretrained=False, root='~/.torch/models', **kwargs):
 def resnet152_v1s(pretrained=False, root='~/.torch/models', **kwargs):
     model = ResNetV1b(BottleneckV1b, [3, 8, 36, 3], deep_stem=True, **kwargs)
     if pretrained:
-        from ..model_store import get_resnet_file
         model.load_state_dict(torch.load(get_resnet_file('resnet152', root=root)), strict=False)
     return model
 
