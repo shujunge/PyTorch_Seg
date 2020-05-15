@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.Segment_Base import SegBaseModel, model_params
+from models.Segment_Base import SegBaseModel, model_params, _FCNHead
 
 
 __all__ = ['DeepLabV3']
@@ -36,22 +36,26 @@ class DeepLabV3(SegBaseModel):
         super(DeepLabV3, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
 
         self.stage = stage
+        self.aux  = aux
         self.aspp = ASPP(in_channels=model_params[self.stage][backbone], num_classes=nclass)
+        if self.aux:
+            self.auxlayer = _FCNHead(model_params[self.stage][backbone], nclass, **kwargs)
+
         self.__setattr__('exclusive', ['head', 'auxlayer'] if aux else ['head'])
 
     def forward(self, x):
         size = x.size()[2:]
         c1, c2, c3, c4 = self.base_forward(x)
         x = self.aspp(eval(self.stage))
-
+        outputs = []
         x = F.interpolate(x, size, mode='bilinear', align_corners=True)
+        outputs.append(x)
+        if self.aux:
+            auxout = self.auxlayer(c3)
+            auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
+            outputs.append(auxout)
 
-        # if self.aux:
-        #     auxout = self.auxlayer(c3)
-        #     auxout = F.interpolate(auxout, size, mode='bilinear', align_corners=True)
-        #     outputs.append(auxout)
-
-        return x #tuple(outputs)
+        return tuple(outputs)
 
 class ASPP(nn.Module):
     def __init__(self, in_channels, num_classes):
@@ -107,4 +111,4 @@ if __name__ == '__main__':
     model = DeepLabV3(20, backbone='resnest101',stage='c4', pretrained_base= False,)
     img = torch.randn(2, 3, 480, 480)
     output = model(img)
-    print(output.size())
+    print(output[0].size())

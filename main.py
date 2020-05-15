@@ -50,7 +50,7 @@ if __name__ == "__main__":
     args.save_tranining_path = "./results/%s.csv" % args.model_name
     print(args)
 
-    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'stage':args.stage, 'backbone': args.backbone, 'pretrained_base': True },
+    Model_Params = {'DeepLabV3': {'nclass': args.nclasses, 'aux':args.aux,'stage':args.stage, 'backbone': args.backbone, 'pretrained_base': True },
                     'BiSeNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
                     'OCNet': {'nclass': args.nclasses, 'oc_arch': 'pyramid', 'stage':args.stage,'backbone': args.backbone,'pretrained_base': True},
                     'ICNet': {'nclass': args.nclasses, 'backbone': args.backbone, 'pretrained_base': True},
@@ -102,11 +102,11 @@ if __name__ == "__main__":
     #loss_fn = nn.BCELoss()
     # loss_fn = nn.CrossEntropyLoss(ignore_index=255)
     if args.head =='ENcNet':
-        loss_fn = EncNetLoss(nclass= args.nclasses, ignore_index=-1)
+        loss_fn = EncNetLoss(nclass= args.nclasses, aux= args.aux, ignore_index=-1)
     # elif args.head =='ENcNet':
         # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
     else:
-        loss_fn  = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False, ignore_index=-1) # [nn.BCEWithLogitsLoss(), DiceLoss()]
+        loss_fn  = MixSoftmaxCrossEntropyLoss(aux= args.aux, aux_weight=False, ignore_index=-1) # [nn.BCEWithLogitsLoss(), DiceLoss()]
 
 
     # lr scheduling

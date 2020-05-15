@@ -42,6 +42,12 @@ def my_argparse():
         help="config path of model weight",
         type=str
     )
+    parser.add_argument(
+        "--aux",
+        default=False,
+        help="choice the aux path for model tranining",
+        type=bool
+    )
 
     parser.add_argument(
         "--GPUs",
