@@ -22,7 +22,7 @@ import torch.nn as nn
 from utils.my_lr import WarmupPolyLR
 from utils.my_trainer import training_loop
 from configs.my_argparse import my_argparse
-from utils.loss import MixSoftmaxCrossEntropyLoss, EncNetLoss, LovaszSoftmax, MixSoftmaxCrossEntropyOHEMLoss
+from utils.loss import MultiClassCriterion
 from utils.score import SegmentationMetric
 
 if __name__ == "__main__":
@@ -40,7 +40,8 @@ if __name__ == "__main__":
     args = my_argparse()
     os.environ["CUDA_VISIBLE_DEVICES"] =args.GPUs 
 
-    args.model_name = '%dx%d_%s_%s_stage_%s_aux_%s' %(args.image_size, args.image_size, args.backbone, args.head, args.stage, args.aux)
+    args.model_name = '%dx%d_%s_%s_stage_%s_aux_%s_loss_%s'\
+                      % (args.image_size, args.image_size, args.backbone, args.head, args.stage, args.aux,args.loss_type)
     args.nclasses = 21
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  ##判断是否有gpu
 
@@ -99,17 +100,7 @@ if __name__ == "__main__":
     #model.load_state_dict(torch.load('weights/EfficientNet_B4_UNet_0.8055.pt'))
     optimizer = torch.optim.Adam(model.parameters(), lr= args.lr)
 
-    #loss_fn = nn.BCELoss()
-    # loss_fn = nn.CrossEntropyLoss(ignore_index=255)
-    if args.head =='ENcNet':
-        loss_fn = EncNetLoss(nclass= args.nclasses, aux= args.aux, ignore_index=-1)
-    # elif args.head =='ENcNet':
-        # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
-    else:
-        # loss_fn = MixSoftmaxCrossEntropyLoss(aux= args.aux, aux_weight=False, ignore_index=-1)
-        # loss_fn = LovaszSoftmax(ignore_index=-1)
-        loss_fn = MixSoftmaxCrossEntropyOHEMLoss(aux= args.aux, aux_weight=False, ignore_index=-1)
-
+    loss_fn = MultiClassCriterion(loss_type=args.loss_type)
 
     # lr scheduling
     iters_per_epoch = len(train_data) // (args.batch_size)

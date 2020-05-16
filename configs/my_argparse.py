@@ -55,6 +55,15 @@ def my_argparse():
         help="choice gpus for training",
         type=str
     )
+    parser.add_argument(
+        "--loss_type",
+        default='MixSoftmaxCrossEntropyLoss',
+        choices=['LovaszSoftmax', 'FocalLoss','OhemCrossEntropy2d',
+                 'SoftIoULoss','EncNetLoss','ICNetLoss','MixSoftmaxCrossEntropyLoss',
+                 'MixSoftmaxCrossEntropyOHEMLoss','CrossEntropyLoss'],
+        help="choice loss for training",
+        type=str
+    )
 
     parser.add_argument(
         "--image_size",
