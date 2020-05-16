@@ -190,7 +190,7 @@ class VOCSegmentation(SegmentationDataset):
         if self.transform is not None:
             img = self.transform(img)
         # mask = Label_To_EveryClass(self.num_class)(mask)
-        return img, mask , np.array(base_mask)#, os.path.basename(self.images[index])
+        return img, mask #, os.path.basename(self.images[index])
 
     def __len__(self):
         return len(self.images)
