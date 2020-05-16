@@ -100,7 +100,7 @@ if __name__ == "__main__":
     #model.load_state_dict(torch.load('weights/EfficientNet_B4_UNet_0.8055.pt'))
     optimizer = torch.optim.Adam(model.parameters(), lr= args.lr)
 
-    loss_fn = MultiClassCriterion(loss_type=args.loss_type)
+    loss_fn = MultiClassCriterion(args=args)
 
     # lr scheduling
     iters_per_epoch = len(train_data) // (args.batch_size)

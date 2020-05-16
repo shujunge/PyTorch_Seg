@@ -6,7 +6,7 @@ import numpy as np
 
 # Adapted from OCNet Repository (https://github.com/PkuRainBow/OCNet)
 class OhemCrossEntropy2d(nn.Module):
-    def __init__(self, thresh=0.6, min_kept=0, weight=None, ignore_index=255):
+    def __init__(self, thresh=0.6, min_kept=0, weight=None, ignore_index=-1):
         super().__init__()
         self.ignore_label = ignore_index
         self.thresh = float(thresh)
