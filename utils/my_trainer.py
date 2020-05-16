@@ -88,16 +88,22 @@ def evalute(args, model, loss_fn, val_dataloader):
     args.val_metric.reset()
 
     with torch.no_grad():
-        for index, (image,label, _) in tqdm(enumerate(val_dataloader)):
-            image = image.float().to(args.device)
-            label = label.long().to(args.device)
-            model = model.to(args.device)
-            val_preds = model(image)
+        for index, data in tqdm(enumerate(val_dataloader)):
+            label = data['masks']
+            _, _, H, W = label.size()
+            val_preds = torch.zeros(1, args.nclasses, H, W)
+            val_preds = val_preds.cuda()
+            for image in data['imgs']:
+                image = image.float().to(args.device)
+                label = label.long().to(args.device)
+                model = model.to(args.device)
+                val_preds = val_preds + model(image)[0] / len(args.test_sizes)
+
             loss_values = loss_fn(val_preds, label)
             loss_val = sum(loss for loss in loss_values.values())
             val_loss.append(loss_val.item())
-            args.val_metric.update(val_preds[0], label)
-            preds = val_preds[0].clone()
+            args.val_metric.update(val_preds, label)
+            preds = val_preds.clone()
             preds = torch.softmax(preds, dim=1)
             y_preds = preds.clone().argmax(1).cpu().detach().numpy()
             y_trues = label.clone().cpu().detach().numpy()

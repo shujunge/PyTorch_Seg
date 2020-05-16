@@ -258,9 +258,9 @@ class Test_VOCSegmentation(SegmentationDataset):
         if self.split != 'test':
             mask = Image.open(self.masks[index])
             masks = self._mask_transform(mask)
-            return img_lists, masks, os.path.basename(self.images[index])
+            return dict(imgs=img_lists,masks=masks, index=os.path.basename(self.images[index]))
 
-        return img_lists, os.path.basename(self.images[index])
+        return dict(imgs=img_lists,index=os.path.basename(self.images[index]))
 
     def __len__(self):
         return len(self.images)
