@@ -85,10 +85,10 @@ def evalute(args, model, loss_fn, val_dataloader):
     torch.cuda.empty_cache()
     model.eval()
     val_loss = []
-    #val_miou = []
+    args.val_metric.reset()
+
     with torch.no_grad():
         for index, (image,label, _) in tqdm(enumerate(val_dataloader)):
-
             image = image.float().to(args.device)
             label = label.long().to(args.device)
             model = model.to(args.device)
@@ -96,13 +96,12 @@ def evalute(args, model, loss_fn, val_dataloader):
             loss_values = loss_fn(val_preds, label)
             loss_val = sum(loss for loss in loss_values.values())
             val_loss.append(loss_val.item())
-            val_preds = torch.sigmoid(val_preds)
-            val_preds[val_preds>=0.5] = 1
-            val_preds[val_preds<0.5] = 0
-            #val_miou.append(IOU(val_preds, label).item())
-            y_preds = val_preds.clone().argmax(1).cpu().detach().numpy()
+            args.val_metric.update(val_preds[0], label)
+            preds = val_preds[0].clone()
+            preds = torch.softmax(preds, dim=1)
+            y_preds = preds.clone().argmax(1).cpu().detach().numpy()
             y_trues = label.clone().cpu().detach().numpy()
-            print("index=%d:"%index, np.unique(y_preds))
+
             for i  in range(y_preds.shape[0]):
                 plt.figure(figsize=(4,2))
                 plt.subplot(121)
@@ -115,10 +114,9 @@ def evalute(args, model, loss_fn, val_dataloader):
                 plt.savefig("visual_results/%d_%d.png"%(index,i),dpi=300)
                 plt.close()
 
-            # temp = val_preds.clone().cpu().detach().numpy()
-            # temp = np.stack(temp, axis=1).astype('int32')
 
-        print("val_loss:{:.4f},val_miou:{:.4f}".format(np.mean(val_loss), np.mean(0.001)))
+        val_pixacc, val_iou = args.val_metric.get()
+        print("val_loss:{:.4f},val_pixacc:{:.4f}, val_miou:{:.4f}".format(np.mean(val_loss), val_pixacc, val_iou ))
 
 
 def my_visual_predicts( output_predictions):

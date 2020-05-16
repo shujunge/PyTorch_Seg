@@ -22,7 +22,8 @@ from configs.my_argparse import my_argparse
 from datasets.VocDataset import VOCSegmentation, Test_VOCSegmentation, make_batch_data_sampler, make_data_sampler
 from torchvision import transforms
 from torch.utils import data
-from utils.loss import MixSoftmaxCrossEntropyLoss, EncNetLoss
+from utils.loss import MultiClassCriterion
+from utils.score import SegmentationMetric
 
 
 if __name__ == "__main__":
@@ -92,13 +93,9 @@ if __name__ == "__main__":
     # model.load_state_dict(torch.load(args.weight_path))
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-    if args.head == 'ENcNet':
-        loss_fn = EncNetLoss(nclass=args.nclasses, ignore_index=-1)
-        # elif args.head =='ENcNet':
-        # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
-    else:
-        loss_fn = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False,ignore_index=-1)
+    loss_fn = MultiClassCriterion(args=args)
 
+    args.val_metric = SegmentationMetric(nclass=args.nclasses)
     evalute(args, model, loss_fn, val_Dataloader)
 
 
