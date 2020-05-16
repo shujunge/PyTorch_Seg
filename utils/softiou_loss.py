@@ -37,4 +37,4 @@ class SoftIoULoss(nn.Module):
         loss = inter / (union + 1e-16)
 
         # Return average loss over classes and batch
-        return -loss.mean()
+        return dict(loss=-loss.mean())

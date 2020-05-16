@@ -51,4 +51,4 @@ class OhemCrossEntropy2d(nn.Module):
         print(np.sum(input_label != self.ignore_label))
         target = torch.from_numpy(input_label.reshape(target.size())).long().cuda()
 
-        return self.criterion(predict, target)
+        return dict(loss=self.criterion(predict, target))

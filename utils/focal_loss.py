@@ -20,4 +20,4 @@ class FocalLoss(nn.Module):
         logpt = -self.ce_fn(*inputs)
         pt = torch.exp(logpt)
         loss = -((1 - pt) ** self.gamma) * self.alpha * logpt
-        return loss
+        return dict(loss=loss)
