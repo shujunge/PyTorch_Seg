@@ -22,7 +22,7 @@ import torch.nn as nn
 from utils.my_lr import WarmupPolyLR
 from utils.my_trainer import training_loop
 from configs.my_argparse import my_argparse
-from utils.loss import MixSoftmaxCrossEntropyLoss, EncNetLoss
+from utils.loss import MixSoftmaxCrossEntropyLoss, EncNetLoss, LovaszSoftmax, MixSoftmaxCrossEntropyOHEMLoss
 from utils.score import SegmentationMetric
 
 if __name__ == "__main__":
@@ -106,7 +106,9 @@ if __name__ == "__main__":
     # elif args.head =='ENcNet':
         # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
     else:
-        loss_fn  = MixSoftmaxCrossEntropyLoss(aux= args.aux, aux_weight=False, ignore_index=-1) # [nn.BCEWithLogitsLoss(), DiceLoss()]
+        # loss_fn = MixSoftmaxCrossEntropyLoss(aux= args.aux, aux_weight=False, ignore_index=-1)
+        # loss_fn = LovaszSoftmax(ignore_index=-1)
+        loss_fn = MixSoftmaxCrossEntropyOHEMLoss(aux= args.aux, aux_weight=False, ignore_index=-1)
 
 
     # lr scheduling
