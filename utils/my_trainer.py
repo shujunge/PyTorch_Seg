@@ -7,6 +7,8 @@ import pandas as pd
 from utils.my_metrics import IOU
 from PIL import Image
 import cv2
+import torch.nn.functional as F
+
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
@@ -90,18 +92,17 @@ def evalute(args, model, loss_fn, val_dataloader):
     with torch.no_grad():
         for index, data in tqdm(enumerate(val_dataloader)):
             label = data['masks']
-            _, _, H, W = label.size()
+            _, H, W = label.size()
             val_preds = torch.zeros(1, args.nclasses, H, W)
             val_preds = val_preds.cuda()
             for image in data['imgs']:
                 image = image.float().to(args.device)
                 label = label.long().to(args.device)
                 model = model.to(args.device)
-                val_preds = val_preds + model(image)[0] / len(args.test_sizes)
+                temp = model(image)[0]
+                temp = F.interpolate(temp, (H,W), mode='bilinear', align_corners=True)
+                val_preds = val_preds + temp / len(args.test_sizes)
 
-            loss_values = loss_fn(val_preds, label)
-            loss_val = sum(loss for loss in loss_values.values())
-            val_loss.append(loss_val.item())
             args.val_metric.update(val_preds, label)
             preds = val_preds.clone()
             preds = torch.softmax(preds, dim=1)
@@ -120,9 +121,8 @@ def evalute(args, model, loss_fn, val_dataloader):
                 plt.savefig("visual_results/%d_%d.png"%(index,i),dpi=300)
                 plt.close()
 
-
         val_pixacc, val_iou = args.val_metric.get()
-        print("val_loss:{:.4f},val_pixacc:{:.4f}, val_miou:{:.4f}".format(np.mean(val_loss), val_pixacc, val_iou ))
+        print("val_pixacc:{:.4f}, val_miou:{:.4f}".format(val_pixacc, val_iou ))
 
 
 def my_visual_predicts( output_predictions):

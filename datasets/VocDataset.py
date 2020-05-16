@@ -249,11 +249,11 @@ class Test_VOCSegmentation(SegmentationDataset):
         img = Image.open(self.images[index]).convert('RGB')
         img_lists = []
         for img_size in self.test_sizes:
-            img = img.resize((img_size, img_size), Image.BILINEAR)
-            img = self._img_transform(img)
+            zz = img.resize((img_size, img_size), Image.BILINEAR)
+            zz = self._img_transform(zz)
             if self.transform is not None:
-                img = self.transform(img)
-            img_lists.append(img)
+                zz = self.transform(zz)
+            img_lists.append(zz)
 
         if self.split != 'test':
             mask = Image.open(self.masks[index])
