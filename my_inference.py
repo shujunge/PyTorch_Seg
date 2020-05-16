@@ -72,7 +72,7 @@ if __name__ == "__main__":
     data_kwargs = {'transform': input_transform, 'base_size': 520, 'crop_size': args.image_size,
                    'root': "/home/zfw/VOCdevkit"}  #
 
-    val_data = Test_VOCSegmentation(split='val', mode='val', **data_kwargs)
+    val_data = Test_VOCSegmentation(split='val', mode='val',test_sizes=args.test_sizes, **data_kwargs)
 
     val_sampler = make_data_sampler(val_data, shuffle=False, distributed=False)
     val_batch_sampler = make_batch_data_sampler(val_sampler, args.batch_size)
