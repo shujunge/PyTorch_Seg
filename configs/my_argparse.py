@@ -72,6 +72,12 @@ def my_argparse():
         type=int,
     )
     parser.add_argument(
+        "--test_sizes",
+        help="the size of image test ;default is [256, 352, 480]",
+        default=[256, 352, 480],
+        type=list,
+    )
+    parser.add_argument(
         "--batch_size",
         help="the batch size for model training",
         default=32,

@@ -87,7 +87,7 @@ def evalute(args, model, loss_fn, val_dataloader):
     val_loss = []
     #val_miou = []
     with torch.no_grad():
-        for index, (image,label) in tqdm(enumerate(val_dataloader)):
+        for index, (image,label, _) in tqdm(enumerate(val_dataloader)):
 
             image = image.float().to(args.device)
             label = label.long().to(args.device)

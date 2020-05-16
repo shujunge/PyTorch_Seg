@@ -20,13 +20,13 @@ class MultiClassCriterion(nn.Module):
         elif args.loss_type == 'SoftIoULoss':
             self.criterion = SoftIoULoss(n_classes=args.nclasses)
         elif args.loss_type == 'EncNetLoss':
-            self.criterion = EncNetLoss(**kwargs)
+            self.criterion = EncNetLoss(nclass=args.nclasses, **kwargs)
         elif args.loss_type == 'ICNetLoss':
-            self.criterion = ICNetLoss(**kwargs)
+            self.criterion = ICNetLoss(nclass=args.nclasses, **kwargs)
         elif args.loss_type == "MixSoftmaxCrossEntropyLoss":
-            self.criterion = MixSoftmaxCrossEntropyLoss(**kwargs)
+            self.criterion = MixSoftmaxCrossEntropyLoss(aux=args.aux, ignore_index=-1,**kwargs)
         elif args.loss_type == "MixSoftmaxCrossEntropyOHEMLoss":
-            self.criterion = MixSoftmaxCrossEntropyOHEMLoss(**kwargs)
+            self.criterion = MixSoftmaxCrossEntropyOHEMLoss(aux=args.aux, ignore_index=-1,**kwargs)
         else:
             raise NotImplementedError
 

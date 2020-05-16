@@ -19,7 +19,7 @@ from models.DenseASPP import DenseASPP
 import torch.nn as nn
 from utils.my_trainer import evalute
 from configs.my_argparse import my_argparse
-from datasets.VocDataset import VOCSegmentation, make_batch_data_sampler, make_data_sampler
+from datasets.VocDataset import VOCSegmentation, Test_VOCSegmentation, make_batch_data_sampler, make_data_sampler
 from torchvision import transforms
 from torch.utils import data
 from utils.loss import MixSoftmaxCrossEntropyLoss, EncNetLoss
@@ -70,10 +70,8 @@ if __name__ == "__main__":
     # dataset and dataloader
     data_kwargs = {'transform': input_transform, 'base_size': 520, 'crop_size': args.image_size,
                    'root': "/home/zfw/VOCdevkit"}  #
-    train_data = VOCSegmentation(split='train', mode='train', **data_kwargs)
-    val_data = VOCSegmentation(split='val', mode='val', **data_kwargs)
-    iters_per_epoch = len(train_data) // (args.batch_size)
-    max_iters = iters_per_epoch
+
+    val_data = Test_VOCSegmentation(split='val', mode='val', **data_kwargs)
 
     val_sampler = make_data_sampler(val_data, shuffle=False, distributed=False)
     val_batch_sampler = make_batch_data_sampler(val_sampler, args.batch_size)
@@ -99,7 +97,7 @@ if __name__ == "__main__":
         # elif args.head =='ENcNet':
         # loss_fn = ICNetLoss(nclass=args.nclasses, ignore_index=-1)
     else:
-        loss_fn = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False,ignore_index=-1)  # [nn.BCEWithLogitsLoss(), DiceLoss()]
+        loss_fn = MixSoftmaxCrossEntropyLoss(aux=False, aux_weight=False,ignore_index=-1)
 
     evalute(args, model, loss_fn, val_Dataloader)
 

@@ -209,6 +209,70 @@ class VOCSegmentation(SegmentationDataset):
                 'tv')
 
 
+
+class Test_VOCSegmentation(SegmentationDataset):
+
+    BASE_DIR = 'VOC2012'
+
+    def __init__(self, root='/data', split='test', test_sizes=None, mode=None, transform=None, **kwargs):
+        super(Test_VOCSegmentation, self).__init__(root, split, mode, transform, **kwargs)
+        _voc_root = os.path.join(root, self.BASE_DIR)
+        _mask_dir = os.path.join(_voc_root, 'SegmentationClass')
+        _image_dir = os.path.join(_voc_root, 'JPEGImages')
+
+        self.test_sizes = test_sizes
+        self.split = split
+
+        # train/val/test splits are pre-cut
+        _splits_dir = os.path.join(_voc_root, 'ImageSets/Segmentation')
+        if split == 'val':
+            _split_f = os.path.join(_splits_dir, 'val.txt')
+        else:
+            _split_f = os.path.join(_splits_dir, 'test.txt')
+
+        self.images = []
+        self.masks = []
+        with open(os.path.join(_split_f), "r") as lines:
+            for line in lines:
+                _image = os.path.join(_image_dir, line.rstrip('\n') + ".jpg")
+                assert os.path.isfile(_image)
+                self.images.append(_image)
+                if split != 'test':
+                    _mask = os.path.join(_mask_dir, line.rstrip('\n') + ".png")
+                    assert os.path.isfile(_mask)
+                    self.masks.append(_mask)
+
+        print('Found {} images in the folder {}'.format(len(self.images), _voc_root))
+
+    def __getitem__(self, index):
+
+        img = Image.open(self.images[index]).convert('RGB')
+        img_lists = []
+        for img_size in self.test_sizes:
+            img = img.resize((img_size, img_size), Image.BILINEAR)
+            img = self._img_transform(img)
+            if self.transform is not None:
+                img = self.transform(img)
+            img_lists.append(img)
+
+        if self.split != 'test':
+            mask = Image.open(self.masks[index])
+            masks = self._mask_transform(mask)
+            return img_lists, masks, os.path.basename(self.images[index])
+
+        return img_lists, os.path.basename(self.images[index])
+
+    def __len__(self):
+        return len(self.images)
+
+    @property
+    def classes(self):
+        """Category names."""
+        return ('background', 'airplane', 'bicycle', 'bird', 'boat', 'bottle',
+                'bus', 'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
+                'motorcycle', 'person', 'potted-plant', 'sheep', 'sofa', 'train',
+                'tv')
+
 # Code is copy-pasted from https://github.com/facebookresearch/maskrcnn-benchmark/blob/master/maskrcnn_benchmark/data/samplers/distributed.py
 class DistributedSampler(Sampler):
     """Sampler that restricts data loading to a subset of the dataset.
