@@ -70,9 +70,12 @@ class LovaszSoftmax(nn.Module):
         self.only_present = only_present
 
     def forward(self, logits, labels):
-        probas = F.softmax(logits, dim=1)
+        preds  = logits[0]
+        # preds, target = tuple(inputs)
+        # inputs = tuple(list(preds) + [target])
+        probas = F.softmax(preds, dim=1)
         total_loss = 0
-        batch_size = logits.shape[0]
+        batch_size = preds.shape[0]
         for prb, lbl in zip(probas, labels):
             total_loss += lovasz_softmax_flat(prb, lbl, self.ignore_index, self.only_present)
         return total_loss / batch_size

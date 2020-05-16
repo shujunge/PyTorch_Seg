@@ -14,8 +14,10 @@ class FocalLoss(nn.Module):
         self.ignore_index = ignore_index
         self.ce_fn = nn.CrossEntropyLoss(weight=self.weight, ignore_index=self.ignore_index)
 
-    def forward(self, preds, labels):
-        logpt = -self.ce_fn(preds, labels)
+    def forward(self, *inputs):
+        preds, target = tuple(inputs)
+        inputs = tuple(list(preds) + [target])
+        logpt = -self.ce_fn(*inputs)
         pt = torch.exp(logpt)
         loss = -((1 - pt) ** self.gamma) * self.alpha * logpt
         return loss

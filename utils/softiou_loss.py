@@ -14,9 +14,10 @@ class SoftIoULoss(nn.Module):
         one_hot = torch.zeros(n, n_classes, h, w).scatter_(1, tensor.view(n, 1, h, w), 1)
         return one_hot
 
-    def forward(self, logit, target):
+    def forward(self, preds, target):
         # logit => N x Classes x H x W
         # target => N x H x W
+        logit  =preds[0]
 
         N = len(logit)
 

@@ -13,13 +13,13 @@ class OhemCrossEntropy2d(nn.Module):
         self.min_kept = int(min_kept)
         self.criterion = nn.CrossEntropyLoss(weight=weight, ignore_index=ignore_index)
 
-    def forward(self, predict, target):
+    def forward(self, pred, target):
         """
             Args:
-                predict:(n, c, h, w)
+                pred:(n, c, h, w)
                 target:(n, h, w)
         """
-
+        predict = pred[0]
         n, c, h, w = predict.size()
         input_label = target.data.cpu().numpy().ravel().astype(np.int32)
         x = np.rollaxis(predict.data.cpu().numpy(), 1).reshape((c, -1))
