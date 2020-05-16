@@ -177,20 +177,20 @@ class VOCSegmentation(SegmentationDataset):
             if self.transform is not None:
                 img = self.transform(img)
             return img, os.path.basename(self.images[index])
-        mask = Image.open(self.masks[index])
+        base_mask = Image.open(self.masks[index])
         # synchronized transform
         if self.mode == 'train':
-            img, mask = self._sync_transform(img, mask)
+            img, mask = self._sync_transform(img, base_mask)
         elif self.mode == 'val':
-            img, mask = self._val_sync_transform(img, mask)
+            img, mask = self._val_sync_transform(img, base_mask)
         else:
             assert self.mode == 'testval'
-            img, mask = self._img_transform(img), self._mask_transform(mask)
+            img, mask = self._img_transform(img), self._mask_transform(base_mask)
         # general resize, normalize and toTensor
         if self.transform is not None:
             img = self.transform(img)
         # mask = Label_To_EveryClass(self.num_class)(mask)
-        return img, mask #, os.path.basename(self.images[index])
+        return img, mask , base_mask#, os.path.basename(self.images[index])
 
     def __len__(self):
         return len(self.images)
