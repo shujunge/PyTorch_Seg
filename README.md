@@ -8,6 +8,8 @@ Segmentation for everything by pytorch
 
 ## 运行命令
 ```
+python main.py -h
+
 python -B main.py --image_size 352 --backbone resnest101 --head PSPNet --GPUs 1,2 --batch_size 28 --aux True
 ```
 
